@@ -1,0 +1,30 @@
+{
+  "name": "whiskey-sql",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./lib/index.js",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/whiskey-actual/whiskey-sql.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/whiskey-actual/whiskey-sql/issues"
+  },
+  "homepage": "https://github.com/whiskey-actual/whiskey-sql#readme",
+  "dependencies": {
+    "mssql": "^10.0.1",
+    "whiskey-log": "^1.1.20",
+    "whiskey-util": "^1.0.19"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.1"
+  }
+}
