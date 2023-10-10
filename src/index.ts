@@ -56,20 +56,6 @@ export class SqlQueryPackage {
     public queryText:string=''
 }
 
-export class UpdatePackage {
-    public objectName:string=''
-    public tableName:string = ''
-    public idColumn:string = ''
-    public UpdatePackageItems:UpdatePackageItem[]=[]
-}
-
-export class UpdatePackageItem {
-    public idValue:number = 0
-    public updateColumn:string = ''
-    public updateValue:any = ''
-    public columnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams = mssql.Int
-}
-
 export class DBEngine {
 
     constructor(logEngine:LogEngine, sqlConfig:any, persistLogFrequency:number=250) {
@@ -158,6 +144,29 @@ export class DBEngine {
         }
     }
 
+    public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
+        this._le.logStack.push("getID");
+        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
+        let output:mssql.IRecordSet<any>
+
+        try {
+
+            const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, columns, MatchConditions)
+
+            const result:mssql.IResult<any> = await this.executeSql(sqpSelect.query, sqpSelect.request)
+            
+            output = result.recordset
+
+        } catch(err) {
+            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            throw(err)
+        } finally {
+            this._le.logStack.pop()
+        }
+
+        return new Promise<mssql.IRecordSet<any>>((resolve) => {resolve(output)})
+    }
+
     public async getID(objectName:string, MatchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
         this._le.logStack.push("getID");
         this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
@@ -165,7 +174,7 @@ export class DBEngine {
 
         try {
 
-            const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, objectName+'ID', MatchConditions)
+            const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, [objectName+'ID'], MatchConditions)
             //this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, sqpSelect.queryText)
 
             const result:mssql.IResult<any> = await this.executeSql(sqpSelect.query, sqpSelect.request)
@@ -208,21 +217,21 @@ export class DBEngine {
         return new Promise<number>((resolve) => {resolve(output)})
     }
 
-    public async getSingleValue(table:string, idColumn:string, idValue:number, queryColumn:string):Promise<any> {
+    public async getSingleValue(table:string, idColumn:string, idValue:number, ColumnToSelect:string):Promise<any> {
 
         this._le.logStack.push("getSingleValue");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `getting \x1b[96m${queryColumn}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
+        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `getting \x1b[96m${ColumnToSelect}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
         let output:any
         
         try {
             const r = this._sqlPool.request()
             r.input('idValue', mssql.Int, idValue)
-            const query:string = `SELECT ${queryColumn} FROM ${table} WHERE ${idColumn}=@idValue`
+            const query:string = `SELECT ${ColumnToSelect} FROM ${table} WHERE ${idColumn}=@idValue`
             const result:mssql.IResult<any> = await this.executeSql(query, r)
             if(result.recordset.length===0) {
                 throw(`${table}.${idColumn}=${idValue} not found.`)
             } else {
-                output = result.recordset[0][queryColumn]
+                output = result.recordset[0][ColumnToSelect]
             }
         } catch(err) {
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
@@ -235,63 +244,6 @@ export class DBEngine {
     
     }
 
-    public async performUpdates(updatePackage:UpdatePackage, changeDetection:boolean=false):Promise<void> {
-        this._le.logStack.push("performUpdates");
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Note, `processing ${updatePackage.UpdatePackageItems.length} updates on \x1b[96m${updatePackage.tableName}\x1b[0m`)
-        const startDate:Date = new Date()
-
-        try {
-
-            for(let i=0; i<updatePackage.UpdatePackageItems.length; i++) {
-
-                let currentValue:any
-
-                let changeDetected:boolean = false
-                if(changeDetection) {
-                    try {
-                        currentValue = await this.getSingleValue(updatePackage.tableName, updatePackage.idColumn, updatePackage.UpdatePackageItems[i].idValue, updatePackage.UpdatePackageItems[i].updateColumn);
-                        if(
-                            updatePackage.UpdatePackageItems[i].updateValue
-                            && (!currentValue || currentValue===null)
-                            && currentValue!==updatePackage.UpdatePackageItems[i].updateValue
-                        ) 
-                        {
-                            changeDetected=true
-                        }
-                    } catch(err) {
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `currentValue:"${currentValue}", "updateValue:"${updatePackage.UpdatePackageItems[i].updateValue}" :: ${err}`)
-                        throw(err)
-                    }
-                }
-
-                if(!changeDetection || (changeDetection && changeDetected)) {
-                    this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Change, `\x1b[96m${updatePackage.objectName}\x1b[0m :: \x1b[96m${updatePackage.tableName}\x1b[0m.\x1b[96m${updatePackage.UpdatePackageItems[i].updateColumn}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${updatePackage.UpdatePackageItems[i].updateValue}\x1b[0m".. `)
-                    const r = this._sqlPool.request()
-                    r.input('idValue', mssql.Int, updatePackage.UpdatePackageItems[i].idValue)
-                    r.input('updateValue', updatePackage.UpdatePackageItems[i].columnType, updatePackage.UpdatePackageItems[i].updateValue)
-                    const queryText:string = `UPDATE ${updatePackage.tableName} SET ${updatePackage.UpdatePackageItems[i].updateColumn}=@updateValue WHERE ${updatePackage.idColumn}=@idValue`
-                    await this.executeSql(queryText, r)
-                } else {
-                    // no update needed
-                    this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `\x1b[96m${updatePackage.tableName}\x1b[0m.\x1b[96m${updatePackage.UpdatePackageItems[i].updateColumn}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"="\x1b[96m${updatePackage.UpdatePackageItems[i].updateValue}\x1b[0m".. `)
-                }
-
-                if(i>0 && i%this._persistLogFrequency===0) {
-                    this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', i, updatePackage.UpdatePackageItems.length, startDate, new Date))
-                }
-
-            }
-        } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
-            throw(err)
-        } finally {
-            this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', updatePackage.UpdatePackageItems.length, updatePackage.UpdatePackageItems.length, startDate, new Date))
-            this._le.logStack.pop()
-        }
-
-        return new Promise<void>((resolve) => {resolve()})
-
-    }
 
     public async updateTable(tableUpdate:TableUpdate, changeDetection:boolean=false):Promise<void> {
         this._le.logStack.push(tableUpdate.tableName);
@@ -380,13 +332,13 @@ export class DBEngine {
         return alphabet
     }
 
-    private BuildSelectStatement(TableToSelectFrom:string, ColumnToSelect:string, MatchConditions:ColumnValuePair[]):SqlQueryPackage {
+    private BuildSelectStatement(TableToSelectFrom:string, ColumnsToSelect:string[], MatchConditions:ColumnValuePair[]):SqlQueryPackage {
         this._le.logStack.push("BuildSelectStatement")
         let output:SqlQueryPackage
 
         try {
 
-            let selectQuery:string = `SELECT ${ColumnToSelect} FROM ${TableToSelectFrom}(NOLOCK) WHERE`
+            let selectQuery:string = `SELECT ${ColumnsToSelect.join(", ")} FROM ${TableToSelectFrom}(NOLOCK) WHERE`
             let selectText:string = selectQuery
 
             const alphabet = this.getAlphaArray()
@@ -466,9 +418,5 @@ export class DBEngine {
 
         return output
     }
-
-
-
-
 
 }
