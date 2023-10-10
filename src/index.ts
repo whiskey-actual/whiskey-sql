@@ -96,6 +96,7 @@ export class DBEngine {
             output = await r.query(sqlQuery)
 
         } catch(err) {
+            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${sqlQuery}`)
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
             throw(err)
         } finally {
@@ -154,7 +155,9 @@ export class DBEngine {
             const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, columns, MatchConditions)
 
             const result:mssql.IResult<any> = await this.executeSql(sqpSelect.query, sqpSelect.request)
-            
+
+            console.debug(sqpSelect.queryText)
+            console.debug(result.recordset)
             output = result.recordset
 
         } catch(err) {
@@ -338,14 +341,15 @@ export class DBEngine {
 
         try {
 
-            let selectQuery:string = `SELECT ${ColumnsToSelect.join(", ")} FROM ${TableToSelectFrom}(NOLOCK) WHERE`
+            let selectQuery:string = `SELECT ${ColumnsToSelect.join(", ")} FROM ${TableToSelectFrom}(NOLOCK)`
             let selectText:string = selectQuery
 
             const alphabet = this.getAlphaArray()
 
             const r = this._sqlPool.request()
             for(let i=0; i<MatchConditions.length; i++) {
-                if(i>0) { selectQuery += ' AND'; selectText += ' AND'}
+                if(i===0) { selectQuery += 'WHERE '; selectText += 'WHERE '}
+                if(i>0) { selectQuery += 'AND'; selectText += 'AND'}
                 if(MatchConditions[i].value===undefined) {
                     selectQuery += ` ${MatchConditions[i].column} IS NULL`
                     selectText +=` ${MatchConditions[i].column} IS NULL`
