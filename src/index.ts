@@ -145,10 +145,10 @@ export class DBEngine {
         }
     }
 
-    public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
+    public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<any> {
         this._le.logStack.push("getID");
         this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
-        let output:mssql.IRecordSet<any>
+        let output:any
 
         try {
 
@@ -158,7 +158,14 @@ export class DBEngine {
 
             console.debug(sqpSelect.queryText)
             console.debug(result.recordset)
-            output = result.recordset
+
+            if(result.recordset.length===0) {
+                // no rows found
+                output = {}
+            } else {
+                output = result.recordset[0]
+            }
+            output = result.recordset[0]
 
         } catch(err) {
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
