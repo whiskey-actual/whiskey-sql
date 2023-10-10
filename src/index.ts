@@ -2,7 +2,7 @@
 import { LogEngine } from 'whiskey-log';
 import { Utilities } from 'whiskey-util'
 
-import mssql, { IProcedureResult, IResult } from 'mssql'
+import mssql, { IProcedureResult, IRecordSet, IResult } from 'mssql'
 
 
 export class TableUpdate {
@@ -145,27 +145,17 @@ export class DBEngine {
         }
     }
 
-    public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<any> {
+    public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
         this._le.logStack.push("getID");
         this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
-        let output:any
+        let output:mssql.IRecordSet<any>
 
         try {
 
             const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, columns, MatchConditions)
 
             const result:mssql.IResult<any> = await this.executeSql(sqpSelect.query, sqpSelect.request)
-
-            console.debug(sqpSelect.queryText)
-            console.debug(result.recordset)
-
-            if(result.recordset.length===0) {
-                // no rows found
-                output = {}
-            } else {
-                output = result.recordset[0]
-            }
-            output = result.recordset[0]
+            output = result.recordset
 
         } catch(err) {
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
