@@ -1,6 +1,6 @@
 // imports
 import { LogEngine } from 'whiskey-log';
-import { Utilities } from 'whiskey-util'
+import { executePromisesWithProgress } from 'whiskey-util'
 
 import mssql, { IProcedureResult, IRecordSet, IResult } from 'mssql'
 
@@ -84,17 +84,13 @@ export class DBEngine {
 
     public async executeSql(sqlQuery:string, sqlRequest:mssql.Request, logFrequency:number=1000):Promise<mssql.IResult<any>> {
         this._le.logStack.push("executeSql");
+        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing: ${sqlQuery}`)
         let output:mssql.IResult<any>
-
         try {
-
-            this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing: ${sqlQuery}`)
-            
             const r = this._sqlPool.request()
             r.parameters = sqlRequest.parameters
             r.verbose = true
             output = await r.query(sqlQuery)
-
         } catch(err) {
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${sqlQuery}`)
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
@@ -102,17 +98,14 @@ export class DBEngine {
         } finally {
             this._le.logStack.pop()
         }
-
         return new Promise<IResult<any>>((resolve) => {resolve(output)})
     }
 
     public async executeSprocs(sprocName:string, sqlRequests:mssql.Request[], logFrequency:number=1000) {
         this._le.logStack.push("writeToSql");
-
+        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing ${sprocName} for ${sqlRequests.length} items .. `)
+        
         try {
-
-            this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing ${sprocName} for ${sqlRequests.length} items .. `)
-
             let executionArray:Promise<void|IProcedureResult<any>>[] = []
 
             for(let i=0; i<sqlRequests.length; i++) {
@@ -135,7 +128,7 @@ export class DBEngine {
                 
             }
 
-            await Utilities.executePromisesWithProgress(this._le, executionArray, logFrequency)
+            await executePromisesWithProgress(this._le, executionArray, logFrequency)
 
         } catch(err) {
             this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
@@ -281,14 +274,14 @@ export class DBEngine {
                     const currentValue:any = result.recordset[0][tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName]
                     const newValue:any = tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue
 
-                    if(newValue && (!currentValue || currentValue==null || newValue.toString().trim()!==currentValue.toString().trim())) {
-
-                        // dont log timestamp changes, because they are expected on nearly every update.
-                        if(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
-                            this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Change, `\x1b[96m${tableUpdate.RowUpdates[i].updateName}\x1b[0m :: \x1b[96m${tableUpdate.tableName}\x1b[0m.\x1b[96m${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `)
-                        }
-                        columnUpdateStatements.push(`${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}=@${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}`)
-                        updateRequest.input(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue)
+                    if(newValue.toString().trim() !== currentValue.toString().trim())
+                    {
+                            // dont log timestamp changes, because they are expected on nearly every update.
+                            if(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
+                                this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Change, `\x1b[96m${tableUpdate.RowUpdates[i].updateName}\x1b[0m :: \x1b[96m${tableUpdate.tableName}\x1b[0m.\x1b[96m${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `)
+                            }
+                            columnUpdateStatements.push(`${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}=@${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}`)
+                            updateRequest.input(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue)
                     }
                 }
 
