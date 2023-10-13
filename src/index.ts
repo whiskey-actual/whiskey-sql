@@ -274,7 +274,7 @@ export class DBEngine {
                     const currentValue:any = result.recordset[0][tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName]
                     const newValue:any = tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue
 
-                    if(newValue.toString().trim() !== currentValue.toString().trim())
+                    if((newValue && !currentValue) || (!newValue && currentValue) || (newValue.toString().trim() !== currentValue.toString().trim()))
                     {
                             // dont log timestamp changes, because they are expected on nearly every update.
                             if(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
