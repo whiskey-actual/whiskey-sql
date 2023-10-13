@@ -304,7 +304,11 @@ export class DBEngine {
                         this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, updateStatement);
                         this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`);
                         console.debug(tableUpdate)
-                        console.debug(tableUpdate.RowUpdates)
+                        for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
+                            for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
+                                console.debug(tableUpdate.RowUpdates[i].ColumnUpdates[j])
+                            }
+                        }
                         throw(err)
                     }
                 }
