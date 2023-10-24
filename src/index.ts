@@ -2,7 +2,7 @@
 import { LogEngine } from 'whiskey-log';
 import { executePromisesWithProgress } from 'whiskey-util'
 
-import mssql, { IProcedureResult, IRecordSet, IResult } from 'mssql'
+import mssql, { IProcedureResult, IResult } from 'mssql'
 
 
 export class TableUpdate {
@@ -62,7 +62,7 @@ export class DBEngine {
         this._le = logEngine;
         this._sqlPool = new mssql.ConnectionPool(sqlConfig)
         this._persistLogFrequency = persistLogFrequency
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, `DBEngine initialized ( don't forget to call connect()! )`)
+        this._le.AddLogEntry(LogEngine.EntryType.Success, `DBEngine initialized ( don't forget to call connect()! )`)
         
     }
     private _le:LogEngine
@@ -71,20 +71,20 @@ export class DBEngine {
     
 
     public async connect() {
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Note, `connecting to mssql ..`)
+        this._le.AddLogEntry(LogEngine.EntryType.Info, `connecting to mssql ..`)
         await this._sqlPool.connect()
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, `.. connected.`)
+        this._le.AddLogEntry(LogEngine.EntryType.Success, `.. connected.`)
     }
 
     public async disconnect() {
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Note, `disconnecting from mssql ..`)
+        this._le.AddLogEntry(LogEngine.EntryType.Info, `disconnecting from mssql ..`)
         await this._sqlPool.close()
-        this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, `.. disconnected.`)
+        this._le.AddLogEntry(LogEngine.EntryType.Success, `.. disconnected.`)
     }
 
     public async executeSql(sqlQuery:string, sqlRequest:mssql.Request, logFrequency:number=1000):Promise<mssql.IResult<any>> {
         this._le.logStack.push("executeSql");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing: ${sqlQuery}`)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `executing: ${sqlQuery}`)
         let output:mssql.IResult<any>
         try {
             const r = this._sqlPool.request()
@@ -92,8 +92,8 @@ export class DBEngine {
             r.verbose = true
             output = await r.query(sqlQuery)
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${sqlQuery}`)
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${sqlQuery}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -103,7 +103,7 @@ export class DBEngine {
 
     public async executeSprocs(sprocName:string, sqlRequests:mssql.Request[], logFrequency:number=1000) {
         this._le.logStack.push("writeToSql");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `executing ${sprocName} for ${sqlRequests.length} items .. `)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `executing ${sprocName} for ${sqlRequests.length} items .. `)
         
         try {
             let executionArray:Promise<void|IProcedureResult<any>>[] = []
@@ -117,12 +117,12 @@ export class DBEngine {
                         r
                         .execute(sprocName)
                         .catch((reason:any) =>{
-                            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${reason}`)
+                            this._le.AddLogEntry(LogEngine.EntryType.Error, `${reason}`)
                             console.debug(r)
                         })
                     )
                 } catch(err) {
-                    this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+                    this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
                     console.debug(sqlRequests[i])
                 }
                 
@@ -131,7 +131,7 @@ export class DBEngine {
             await executePromisesWithProgress(this._le, executionArray, logFrequency)
 
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -140,7 +140,7 @@ export class DBEngine {
 
     public async selectColumns(objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
         this._le.logStack.push("getID");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
         let output:mssql.IRecordSet<any>
 
         try {
@@ -151,7 +151,7 @@ export class DBEngine {
             output = result.recordset
 
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -162,13 +162,13 @@ export class DBEngine {
 
     public async getID(objectName:string, MatchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
         this._le.logStack.push("getID");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Success, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
         let output:number=0
 
         try {
 
             const sqpSelect:SqlQueryPackage = this.BuildSelectStatement(objectName, [objectName+'ID'], MatchConditions)
-            //this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, sqpSelect.queryText)
+            //this._le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, sqpSelect.queryText)
 
             const result:mssql.IResult<any> = await this.executeSql(sqpSelect.query, sqpSelect.request)
 
@@ -177,14 +177,14 @@ export class DBEngine {
             } else {
                 if(addIfMissing) {
 
-                    this._le.AddLogEntry(LogEngine.Severity.Warning, LogEngine.Action.Add, `${objectName}: did not find matching row, adding .. `)
+                    this._le.AddLogEntry(LogEngine.EntryType.Add, `${objectName}: did not find matching row, adding .. `)
                     const sqpInsert:SqlQueryPackage = this.BuildInsertStatement(objectName, MatchConditions)
                     try {
                         await this.executeSql(sqpInsert.query, sqpInsert.request)
                     } catch(err) {
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, sqpSelect.queryText)
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, sqpInsert.queryText)
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+                        this._le.AddLogEntry(LogEngine.EntryType.Error, sqpSelect.queryText)
+                        this._le.AddLogEntry(LogEngine.EntryType.Error, sqpInsert.queryText)
+                        this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
                         throw(err)
                     }
                     
@@ -201,7 +201,7 @@ export class DBEngine {
 
             }
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -213,7 +213,7 @@ export class DBEngine {
     public async getSingleValue(table:string, idColumn:string, idValue:number, ColumnToSelect:string):Promise<any> {
 
         this._le.logStack.push("getSingleValue");
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `getting \x1b[96m${ColumnToSelect}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `getting \x1b[96m${ColumnToSelect}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
         let output:any
         
         try {
@@ -227,7 +227,7 @@ export class DBEngine {
                 output = result.recordset[0][ColumnToSelect]
             }
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -240,7 +240,7 @@ export class DBEngine {
 
     public async updateTable(tableUpdate:TableUpdate, changeDetection:boolean=false):Promise<void> {
         this._le.logStack.push(tableUpdate.tableName);
-        this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, `updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
+        this._le.AddLogEntry(LogEngine.EntryType.Debug, `updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
         try {
 
             for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
@@ -256,7 +256,7 @@ export class DBEngine {
 
                 selectQuery += `FROM ${tableUpdate.tableName} WHERE ${tableUpdate.primaryKeyColumnName}=@PrimaryKeyValue`
 
-                //this._le.AddLogEntry(LogEngine.Severity.Debug, LogEngine.Action.Note, selectQuery);
+                //this._le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, selectQuery);
 
                 const r = this._sqlPool.request()
                 r.input('PrimaryKeyValue', mssql.Int, tableUpdate.RowUpdates[i].primaryKeyValue)
@@ -278,7 +278,7 @@ export class DBEngine {
                     {
                             // dont log timestamp changes, because they are expected on nearly every update.
                             if(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
-                                this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Change, `\x1b[96m${tableUpdate.RowUpdates[i].updateName}\x1b[0m :: \x1b[96m${tableUpdate.tableName}\x1b[0m.\x1b[96m${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `)
+                                this._le.AddLogEntry(LogEngine.EntryType.Change, `\x1b[96m${tableUpdate.RowUpdates[i].updateName}\x1b[0m :: \x1b[96m${tableUpdate.tableName}\x1b[0m.\x1b[96m${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `)
                             }
                             columnUpdateStatements.push(`${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}=@${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}`)
                             updateRequest.input(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue)
@@ -301,8 +301,8 @@ export class DBEngine {
                     try {
                         await this.executeSql(updateStatement, updateRequest)
                     } catch(err) {
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, updateStatement);
-                        this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`);
+                        this._le.AddLogEntry(LogEngine.EntryType.Error, updateStatement);
+                        this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
                         console.debug(tableUpdate)
                         for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
                             for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
@@ -314,10 +314,10 @@ export class DBEngine {
                 }
             }
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
-            //this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', updatePackage.UpdatePackageItems.length, updatePackage.UpdatePackageItems.length, startDate, new Date))
+            //this._le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', updatePackage.UpdatePackageItems.length, updatePackage.UpdatePackageItems.length, startDate, new Date))
             this._le.logStack.pop()
         }
 
@@ -355,7 +355,7 @@ export class DBEngine {
                 }
              
                 r.input(`KeyValue${alphabet[i]}`, MatchConditions[i].type, (MatchConditions[i].value || MatchConditions[i].value===0) ? MatchConditions[i].value : null)
-                //this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Note, `${MatchConditions[i].column}='${MatchConditions[i].value}'`)
+                //this._le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Note, `${MatchConditions[i].column}='${MatchConditions[i].value}'`)
             }
 
             //console.debug(selectQuery)
@@ -366,7 +366,7 @@ export class DBEngine {
             output = sqp
 
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
@@ -401,7 +401,7 @@ export class DBEngine {
                 insertStatement += `@KeyValue${alphabet[i]}`
                 insertText += `'${MatchConditions[i].value}'`
                 r.input(`KeyValue${alphabet[i]}`, MatchConditions[i].type, (MatchConditions[i].value || MatchConditions[i].value===0) ? MatchConditions[i].value : null)
-                //this._le.AddLogEntry(LogEngine.Severity.Info, LogEngine.Action.Note, `${MatchConditions[i].column}='${MatchConditions[i].value}'`)
+                //this._le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Note, `${MatchConditions[i].column}='${MatchConditions[i].value}'`)
             }
             insertStatement += ')'; insertText += ')'
 
@@ -410,7 +410,7 @@ export class DBEngine {
             output = sqp
 
         } catch(err) {
-            this._le.AddLogEntry(LogEngine.Severity.Error, LogEngine.Action.Note, `${err}`)
+            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
             throw(err)
         } finally {
             this._le.logStack.pop()
