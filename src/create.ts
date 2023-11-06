@@ -23,11 +23,11 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 indexesToCreate.push(`CREATE INDEX IDX_${tableName}_${columnDefinitions[i].columnName} ON ${tableName}(${columnDefinitions[i].columnName});`)
             }
         }    
-                
-        await new mssql.Request().bulk(t)
+
+        const r = sqlPool.request()
+        await r.bulk(t)
 
         for(let i=0; i<indexesToCreate.length; i++) {
-            const r = sqlPool.request()
             await SqlStatement(le, sqlPool, indexesToCreate[i], r)
         }
         
