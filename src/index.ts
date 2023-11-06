@@ -7,6 +7,7 @@ import { SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './components/columnDefinition';
+import { GetID } from './get';
 
 import mssql from 'mssql'
 
@@ -53,6 +54,7 @@ export namespace DBEngine {
         ColumnValuePair,
         ColumnDefinition,
         RowUpdate,
-        ColumnUpdate
+        ColumnUpdate,
+        GetID
     }
 }

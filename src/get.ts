@@ -26,7 +26,7 @@ export async function SelectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, 
     return new Promise<mssql.IRecordSet<any>>((resolve) => {resolve(output)})
 }
 
-export async function getID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, MatchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
+export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, MatchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
     le.logStack.push("getID");
     le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
     let output:number=0
