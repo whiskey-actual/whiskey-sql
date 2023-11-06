@@ -45,8 +45,8 @@ export class DBEngine {
         return await CreateTable(tableName, columnDefinitions)
     }
 
-    public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true) {
-        GetID(this.le, this.sqlPool, objectName, matchConditions, addIfMissing)
+    public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
+        return await GetID(this.le, this.sqlPool, objectName, matchConditions, addIfMissing)
     }
 
 }
