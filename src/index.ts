@@ -54,4 +54,5 @@ export = {
     ColumnDefinition,
     RowUpdate,
     ColumnUpdate,
+    SelectColumns
 }
