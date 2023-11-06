@@ -37,5 +37,5 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
     } finally {
         le.logStack.pop()
     }
-    return new Promise<void>((resolve) => {resolve(void)})
+    return new Promise<void>((resolve) => {resolve()})
 }
