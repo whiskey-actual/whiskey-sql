@@ -42,7 +42,7 @@ export class DBEngine {
     }
 
     public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<any> {
-        return await CreateTable(tableName, columnDefinitions)
+        return await CreateTable(this.le, this.sqlPool, tableName, columnDefinitions)
     }
 
     public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {

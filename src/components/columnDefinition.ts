@@ -9,4 +9,5 @@ export class ColumnDefinition {
     public columnName:string=''
     public columnType:mssql.ISqlTypeFactoryWithNoParams|mssql.ISqlTypeWithLength=mssql.Int
     public isNullable:boolean=false
+    public isIndexed:boolean=false
 }
