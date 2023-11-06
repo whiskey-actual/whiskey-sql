@@ -25,9 +25,12 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         }    
 
         const r = sqlPool.request()
+
+        le.AddLogEntry(LogEngine.EntryType.Info, `executing CREATE TABLE ${tableName}`)
         await r.bulk(t)
 
         for(let i=0; i<indexesToCreate.length; i++) {
+            le.AddLogEntry(LogEngine.EntryType.Info, `${indexesToCreate[i]}`)
             await SqlStatement(le, sqlPool, indexesToCreate[i], r)
         }
         
