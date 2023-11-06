@@ -37,8 +37,8 @@ export class DBEngine {
         return await SelectColumns(this.le, this.sqlPool, objectName, columns, matchConditions)
     }
 
-    public async updateTable(tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[], changeDetection=true):Promise<any> {
-        return await UpdateTable(this.le, this.sqlPool, tableName, primaryKeyColumnName, rowUpdates, changeDetection)
+    public async updateTable(tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[]):Promise<any> {
+        return await UpdateTable(this.le, this.sqlPool, tableName, primaryKeyColumnName, rowUpdates)
     }
 
     public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<any> {

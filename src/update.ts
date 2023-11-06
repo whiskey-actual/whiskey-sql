@@ -3,7 +3,7 @@ import { LogEngine } from 'whiskey-log';
 import { SqlStatement } from './execute';
 
 
-export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[], changeDetection:boolean=false):Promise<void> {
+export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[]):Promise<void> {
     le.logStack.push(tableName);
     le.AddLogEntry(LogEngine.EntryType.Debug, `updating ${rowUpdates.length} rows on \x1b[96m${tableName}\x1b[0m`)
     try {
@@ -38,11 +38,12 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
                 const currentValue:any = result.recordset[0][rowUpdates[i].ColumnUpdates[j].ColumnName]
                 const newValue:any = rowUpdates[i].ColumnUpdates[j].ColumnValue
+                const changeDetection:boolean = rowUpdates[i].ColumnUpdates[j].changeDetection
 
                 if((newValue && !currentValue) || (newValue && currentValue && newValue.toString().trim()!==currentValue.toString().trim()))
                 {
                         // dont log timestamp changes, because they are expected on nearly every update.
-                        if(rowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
+                        if(changeDetection && rowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
                             le.AddLogEntry(LogEngine.EntryType.Change, `\x1b[96m${tableName}\x1b[0m.\x1b[96m${rowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `, rowUpdates[i].updateName)
                         }
                         columnUpdateStatements.push(`${rowUpdates[i].ColumnUpdates[j].ColumnName}=@${rowUpdates[i].ColumnUpdates[j].ColumnName}`)
@@ -99,14 +100,16 @@ export class RowUpdate {
 }
 
 export class ColumnUpdate {
-    constructor(ColumnName:string, ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams, ColumnValue:any) {
+    constructor(ColumnName:string, ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams, ColumnValue:any, changeDetection:boolean=true) {
         this.ColumnName=ColumnName
         this.ColumnType=ColumnType
         this.ColumnValue=ColumnValue
+        this.changeDetection=changeDetection
     }
     public ColumnName:string = ''
     public ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams = mssql.Int
     public ColumnValue:any = undefined
+    public changeDetection:boolean = true
 }
 
 
