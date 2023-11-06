@@ -4,7 +4,7 @@ import { SqlQueryPackage } from './components/sqlQueryPackage';
 import { ColumnValuePair } from './components/columnValuePair';
 import { SqlStatement } from './execute';
 
-export async function selectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
+export async function SelectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
     le.logStack.push("getID");
     le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
     let output:mssql.IRecordSet<any>

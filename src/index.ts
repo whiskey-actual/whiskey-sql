@@ -3,9 +3,10 @@ import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create';
 import { UpdateTable, RowUpdate, ColumnUpdate } from './update'
-import { selectColumns } from './get';
+import { SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
+import { ColumnDefinition } from './components/columnDefinition';
 
 import mssql from 'mssql'
 
@@ -33,19 +34,23 @@ export class DBEngine {
     }
 
     public async selectColumns(objectName:string, columns:string[], matchConditions:ColumnValuePair[]) {
-        selectColumns(this.le, this.sqlPool, objectName, columns, matchConditions)
+        SelectColumns(this.le, this.sqlPool, objectName, columns, matchConditions)
+    }
+
+    public async updateTable(tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[], changeDetection=true) {
+        UpdateTable(this.le, this.sqlPool, tableName, primaryKeyColumnName, rowUpdates, changeDetection)
+    }
+
+    public createTable(tableName:string, columnDefinitions:ColumnDefinition[]) {
+        CreateTable(tableName, columnDefinitions)
     }
 
 }
 
 module.exports = {
     ColumnValuePair,
-    // creation
-    CreateTable,
-    // updates
-    UpdateTable,
+    ColumnDefinition,
     RowUpdate,
     ColumnUpdate,
-    // read
-    selectColumns
+
 }
