@@ -10,7 +10,7 @@ import { ColumnDefinition } from './components/columnDefinition';
 
 import mssql from 'mssql'
 
-class DBEngine {
+export class DBEngine {
 
     constructor(logEngine:LogEngine, sqlConfig:any) {
         this.le = logEngine;
@@ -48,11 +48,11 @@ class DBEngine {
 }
 
 
-export = {
-    DBEngine,
-    ColumnValuePair,
-    ColumnDefinition,
-    RowUpdate,
-    ColumnUpdate,
-    SelectColumns
+export namespace DBEngine {
+    exports = {
+        ColumnValuePair,
+        ColumnDefinition,
+        RowUpdate,
+        ColumnUpdate
+    }
 }
