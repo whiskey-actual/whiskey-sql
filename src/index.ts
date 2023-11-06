@@ -47,11 +47,11 @@ class DBEngine {
 
 }
 
-module.exports = {
+
+export = {
     DBEngine,
     ColumnValuePair,
     ColumnDefinition,
     RowUpdate,
     ColumnUpdate,
-
 }
