@@ -1,39 +1,10 @@
 // imports
 import { LogEngine } from 'whiskey-log';
 import { executePromisesWithProgress } from 'whiskey-util'
+import { CreateTable } from './create';
+import { Update } from './update'
 
 import mssql, { IProcedureResult, IResult } from 'mssql'
-
-
-export class TableUpdate {
-    constructor(tableName:string, primaryKeyColumnName:string) {
-        this.tableName=tableName
-        this.primaryKeyColumnName=primaryKeyColumnName
-    }
-    public tableName:string = ''
-    public primaryKeyColumnName:string = ''
-    public RowUpdates:RowUpdate[] = []
-}
-
-export class RowUpdate {
-    constructor(primaryKeyValue:number) {
-        this.primaryKeyValue=primaryKeyValue
-    }
-    public updateName:string = ''
-    public primaryKeyValue:number = 0
-    public ColumnUpdates:ColumnUpdate[] = []
-}
-
-export class ColumnUpdate {
-    constructor(ColumnName:string, ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams, ColumnValue:any) {
-        this.ColumnName=ColumnName
-        this.ColumnType=ColumnType
-        this.ColumnValue=ColumnValue
-    }
-    public ColumnName:string = ''
-    public ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams = mssql.Int
-    public ColumnValue:any = undefined
-}
 
 export class ColumnValuePair {
     constructor(c:string, v:any, type:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams|mssql.ISqlTypeWithLength) {
@@ -237,94 +208,6 @@ export class DBEngine {
     
     }
 
-
-    public async updateTable(tableUpdate:TableUpdate, changeDetection:boolean=false):Promise<void> {
-        this._le.logStack.push(tableUpdate.tableName);
-        this._le.AddLogEntry(LogEngine.EntryType.Debug, `updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
-        try {
-
-            for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
-
-                let selectQuery = 'SELECT '
-
-                // iterate through the column updates to build the select statement
-                for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
-                    selectQuery += tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName
-                    if(j<tableUpdate.RowUpdates[i].ColumnUpdates.length-1) {selectQuery += ','}
-                    selectQuery += ' '
-                }
-
-                selectQuery += `FROM ${tableUpdate.tableName} WHERE ${tableUpdate.primaryKeyColumnName}=@PrimaryKeyValue`
-
-                //this._le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, selectQuery);
-
-                const r = this._sqlPool.request()
-                r.input('PrimaryKeyValue', mssql.Int, tableUpdate.RowUpdates[i].primaryKeyValue)
-
-                const result = await this.executeSql(selectQuery, r)
-                
-                let columnUpdateStatements:string[] = []
-
-                const updateRequest = this._sqlPool.request()
-                updateRequest.input('PrimaryKeyValue', mssql.Int, tableUpdate.RowUpdates[i].primaryKeyValue)
-                
-                // iterate over the column updates again to compare values, and build the update statement
-                for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
-
-                    const currentValue:any = result.recordset[0][tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName]
-                    const newValue:any = tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue
-
-                    if((newValue && !currentValue) || (newValue && currentValue && newValue.toString().trim()!==currentValue.toString().trim()))
-                    {
-                            // dont log timestamp changes, because they are expected on nearly every update.
-                            if(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType!==mssql.DateTime2) {
-                                this._le.AddLogEntry(LogEngine.EntryType.Change, `\x1b[96m${tableUpdate.tableName}\x1b[0m.\x1b[96m${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `, tableUpdate.RowUpdates[i].updateName)
-                            }
-                            columnUpdateStatements.push(`${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}=@${tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName}`)
-                            updateRequest.input(tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnName, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnType, tableUpdate.RowUpdates[i].ColumnUpdates[j].ColumnValue)
-                    }
-                }
-
-                // do we have updates to perform?
-                if(columnUpdateStatements.length>0) {
-
-                    let updateStatement:string = `UPDATE ${tableUpdate.tableName} SET `
-
-                    for(let j=0; j<columnUpdateStatements.length; j++) {
-                        updateStatement += columnUpdateStatements[j]
-                        if(j<columnUpdateStatements.length-1) { updateStatement += ','}
-                        updateStatement += ' '
-                    }
-
-                    updateStatement += `WHERE ${tableUpdate.primaryKeyColumnName}=@PrimaryKeyValue`
-
-                    try {
-                        await this.executeSql(updateStatement, updateRequest)
-                    } catch(err) {
-                        this._le.AddLogEntry(LogEngine.EntryType.Error, updateStatement);
-                        this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
-                        console.debug(tableUpdate)
-                        for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
-                            for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
-                                console.debug(tableUpdate.RowUpdates[i].ColumnUpdates[j])
-                            }
-                        }
-                        throw(err)
-                    }
-                }
-            }
-        } catch(err) {
-            this._le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
-            throw(err)
-        } finally {
-            //this._le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', updatePackage.UpdatePackageItems.length, updatePackage.UpdatePackageItems.length, startDate, new Date))
-            this._le.logStack.pop()
-        }
-
-        return new Promise<void>((resolve) => {resolve()})
-
-    }
-
     private getAlphaArray():string[] {
         const alpha:number[] = Array.from(Array(26)).map((e, i) => i + 65);
         const alphabet:string[] = alpha.map((x) => String.fromCharCode(x));
@@ -419,4 +302,9 @@ export class DBEngine {
         return output
     }
 
+}
+
+module.exports = {
+    CreateTable,
+    Update
 }
