@@ -1,6 +1,6 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
-import { executeQuery } from './execute';
+import { SqlStatement } from './execute';
 
 export class Update {
     constructor(logEngine:LogEngine, sqlConfig:any, tableName:string, primaryKeyColumnName:string) {
@@ -38,7 +38,7 @@ export class Update {
                 const r = this.sqlPool.request()
                 r.input('PrimaryKeyValue', mssql.Int, this.RowUpdates[i].primaryKeyValue)
 
-                const result = await executeQuery(this.le, this.sqlPool, selectQuery, r)
+                const result = await SqlStatement(this.le, this.sqlPool, selectQuery, r)
                 
                 let columnUpdateStatements:string[] = []
 
@@ -76,7 +76,7 @@ export class Update {
                     updateStatement += `WHERE ${this.primaryKeyColumnName}=@PrimaryKeyValue`
 
                     try {
-                        await executeQuery(this.le, this.sqlPool, updateStatement, updateRequest)
+                        await SqlStatement(this.le, this.sqlPool, updateStatement, updateRequest)
                     } catch(err) {
                         this.le.AddLogEntry(LogEngine.EntryType.Error, updateStatement);
                         this.le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
