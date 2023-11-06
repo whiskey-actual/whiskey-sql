@@ -3,7 +3,7 @@ import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create';
 import { UpdateTable, RowUpdate, ColumnUpdate } from './update'
-import { GetID, SelectColumns } from './get';
+import { GetID, GetSingleValue, SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './components/columnDefinition';
@@ -47,6 +47,10 @@ export class DBEngine {
 
     public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
         return await GetID(this.le, this.sqlPool, objectName, matchConditions, addIfMissing)
+    }
+
+    public async getSingleValue(table:string, idColumn:string, idValue:number, columnToSelect:string):Promise<any> {
+        return await GetSingleValue(this.le, this.sqlPool, table, idColumn, idValue, columnToSelect)
     }
 
 }

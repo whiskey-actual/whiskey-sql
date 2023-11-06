@@ -76,7 +76,7 @@ export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectNa
     return new Promise<number>((resolve) => {resolve(output)})
 }
 
-async function getSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool, table:string, idColumn:string, idValue:number, ColumnToSelect:string):Promise<any> {
+export async function GetSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool, table:string, idColumn:string, idValue:number, ColumnToSelect:string):Promise<any> {
 
     le.logStack.push("getSingleValue");
     le.AddLogEntry(LogEngine.EntryType.Debug, `getting \x1b[96m${ColumnToSelect}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
