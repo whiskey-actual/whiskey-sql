@@ -1,7 +1,7 @@
 // imports
 import { LogEngine } from 'whiskey-log';
 
-import { CreateTable } from './create';
+import { CreateTable } from './components/createTable';
 import { UpdateTable, RowUpdate, ColumnUpdate } from './update'
 import { GetID, GetSingleValue, SelectColumns } from './get';
 

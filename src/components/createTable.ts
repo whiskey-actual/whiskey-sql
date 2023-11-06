@@ -1,7 +1,7 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
-import { ColumnDefinition } from './components/columnDefinition';
-import { SqlStatement } from './execute';
+import { ColumnDefinition } from './columnDefinition';
+import { SqlStatement } from '../execute';
 
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
@@ -22,7 +22,8 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             if(columnDefinitions[i].isIndexed) {
                 indexesToCreate.push(`CREATE INDEX IDX_${tableName}_${columnDefinitions[i].columnName} ON ${tableName}(${columnDefinitions[i].columnName});`)
             }
-        }    
+        }
+        t.rows.add(0, "default entry")
 
         const r = sqlPool.request()
 
@@ -31,7 +32,8 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         try {
             await r.bulk(t)
         } catch(err) {
-            le.AddLogEntry(LogEngine.EntryType.Error, 'error in bulk()')
+            le.AddLogEntry(LogEngine.EntryType.Error, `error in bulk(): ${err}`)
+            
         }
         
 
