@@ -10,7 +10,7 @@ import { ColumnDefinition } from './components/columnDefinition';
 
 import mssql from 'mssql'
 
-export class DBEngine {
+class DBEngine {
 
     constructor(logEngine:LogEngine, sqlConfig:any) {
         this.le = logEngine;
@@ -48,6 +48,7 @@ export class DBEngine {
 }
 
 module.exports = {
+    DBEngine,
     ColumnValuePair,
     ColumnDefinition,
     RowUpdate,
