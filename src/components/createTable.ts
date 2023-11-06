@@ -20,7 +20,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
 
             if(columnDefinitions[i].isIndexed) {
-                indexesToCreate.push(`CREATE INDEX IDX_${tableName}_${columnDefinitions[i].columnName} ON ${tableName}(${columnDefinitions[i].columnName});`)
+                indexesToCreate.push(`CREATE INDEX IDX_${tableName}_${columnDefinitions[i].columnName} ON ${tableName}(${tableName}${columnDefinitions[i].columnName});`)
             }
         }
         t.rows.add(0, "default entry")
