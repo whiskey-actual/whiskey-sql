@@ -5,7 +5,11 @@ import { SqlStatement } from './execute';
 
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
+    le.logStack.push("CreateTable");
+    le.AddLogEntry(LogEngine.EntryType.Debug, `creating: ${tableName}`)
+
     try {
+
         let indexesToCreate:string[] = []
         const t = new mssql.Table(tableName);
         t.create = true;
@@ -26,11 +30,12 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             const r = sqlPool.request()
             await SqlStatement(le, sqlPool, indexesToCreate[i], r)
         }
-
         
     } catch(err) {
-        console.debug(err)
+        le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
         throw(err)
+    } finally {
+        le.logStack.pop()
     }
-
+    return new Promise<void>((resolve) => {resolve(void)})
 }

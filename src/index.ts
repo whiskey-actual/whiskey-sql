@@ -54,13 +54,3 @@ export class DBEngine {
     }
 
 }
-
-
-export namespace DBEngine {
-    exports = {
-        ColumnValuePair,
-        ColumnDefinition,
-        RowUpdate,
-        ColumnUpdate,
-    }
-}
