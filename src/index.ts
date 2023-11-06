@@ -3,11 +3,10 @@ import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create';
 import { UpdateTable, RowUpdate, ColumnUpdate } from './update'
-import { SelectColumns } from './get';
+import { GetID, SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './components/columnDefinition';
-import { GetID } from './get';
 
 import mssql from 'mssql'
 
@@ -46,6 +45,10 @@ export class DBEngine {
         return await CreateTable(tableName, columnDefinitions)
     }
 
+    public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true) {
+        GetID(this.le, this.sqlPool, objectName, matchConditions, addIfMissing)
+    }
+
 }
 
 
@@ -55,6 +58,5 @@ export namespace DBEngine {
         ColumnDefinition,
         RowUpdate,
         ColumnUpdate,
-        GetID
     }
 }
