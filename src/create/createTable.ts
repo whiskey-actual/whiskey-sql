@@ -14,7 +14,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
     try {
 
-        if (!doesTableExist(le, sqlPool, tableName)) {
+        if (!await doesTableExist(le, sqlPool, tableName)) {
 
             le.AddLogEntry(LogEngine.EntryType.Debug, `creating: ${tableName}`)
             let indexesToCreate:string[] = []
