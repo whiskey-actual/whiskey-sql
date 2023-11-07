@@ -47,12 +47,13 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                         columnType="DATETIME2"
                         break;
                     default:
-                        throw 'column type not supported.'
+                        console.debug(columnDefinitions[i].columnType)
+                        throw 'column type not supported'
                         break;
                 }
 
                 creationQuery += `\t[${tableName}${columnDefinitions[i].columnName}]`
-                creationQuery += `\t${columnDefinitions[i].columnType.toString()}`
+                creationQuery += `\t${columnDefinitions[i].columnType}`
                 creationQuery += `\t${columnDefinitions[i].isNullable ? 'NULL' : 'NOT NULL'},\n`
 
                 //t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
