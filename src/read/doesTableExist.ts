@@ -10,9 +10,9 @@ export async function doesTableExist(le:LogEngine, sqlPool:mssql.ConnectionPool,
         const r = sqlPool.request()
         const query:string = `SELECT TABLE_NAME FROM information_schema.tables WHERE table_name='${tableName}';`
         const result = await ExecuteSqlStatement(le, sqlPool, query, r)
-        if(result.rowsAffected.length>0) {
+        console.debug(result.rowsAffected[0])
+        if(result.rowsAffected[0]>0) {
             le.AddLogEntry(LogEngine.EntryType.Info, `.. table ${tableName} exists`)
-            console.debug(result)
             output=true
         }
     } catch(err) {
