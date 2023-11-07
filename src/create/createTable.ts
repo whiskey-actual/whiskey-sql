@@ -32,6 +32,8 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             for(let i=0; i<columnDefinitions.length; i++) {
 
+                console.debug("---")
+                console.debug(typeof columnDefinitions[i].columnType)
                 console.debug(columnDefinitions[i].columnType)
 
                 let columnType:string = "INT"
