@@ -25,6 +25,8 @@ export function createColumnStatement(tableName:string, columnName:string, colum
         columnStatement += `\t\tDEFAULT((${defaultValue}))`
     }
 
+    columnStatement += ",\n"
+
     return columnStatement
 
 }
