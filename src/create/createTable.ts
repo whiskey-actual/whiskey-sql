@@ -36,7 +36,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
                 let columnType:string = "INT"
 
-                switch(typeObject) {
+                switch(typeObject.toString()) {
                     case "[sql.Int]":
                         columnType="INT"
                         break;
@@ -44,7 +44,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                         columnType="BIT"
                         break;
                     default:
-                        switch(typeObject.type) {
+                        switch(typeObject.type.toString()) {
                             case "[sql.VarChar]":
                                 columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
                                 break;
@@ -53,6 +53,8 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                                 break;
                             default:
                                 console.debug(typeObject)
+                                console.debug(typeObject.type)
+                                console.debug(typeObject.type.toString())
                                 throw `${columnDefinitions[i].columnName}: column type not supported`
                                 break;
                         }
