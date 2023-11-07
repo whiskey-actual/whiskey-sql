@@ -37,23 +37,23 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 let columnType:string = "INT"
 
                 switch(typeObject) {
-                    case "sql.Int":
+                    case "[sql.Int]":
                         columnType="INT"
                         break;
-                    case "sql.Bit":
+                    case "[sql.Bit]":
                         columnType="BIT"
                         break;
                     default:
                         switch(typeObject.type) {
-                            case "sql.VarChar":
+                            case "[sql.VarChar]":
                                 columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
                                 break;
-                            case "sql.DateTime2":
+                            case "[sql.DateTime2]":
                                 columnType="DATETIME2"
                                 break;
                             default:
                                 console.debug(typeObject)
-                                throw 'column type not supported'
+                                throw `${columnDefinitions[i].columnName}: column type not supported`
                                 break;
                         }
                         break;
