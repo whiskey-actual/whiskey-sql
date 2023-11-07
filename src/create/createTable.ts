@@ -18,8 +18,14 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             const t = new mssql.Table(tableName);
             t.create = true;
 
+            let seedRowValues:any[] = []
+
             t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, primary: true, identity: true})
+            seedRowValues.push(0)
+
             t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
+            seedRowValues.push("unknown")
+
             for(let i=0; i<columnDefinitions.length; i++) {
                 t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
 
@@ -32,10 +38,13 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                     if(!indexExists) {
                         indexesToCreate.push(`CREATE INDEX ${indexName} ON ${tableName}(${tableName}${columnDefinitions[i].columnName});`)
                     }
-
                 }
+
+                seedRowValues.push(columnDefinitions[i].seedValue)
+                
             }
-            t.rows.add(0, "default entry")
+
+            seedRowValues.forEach(arr => t.rows.add.apply(null, arr));
 
             const r = sqlPool.request()
 
