@@ -44,10 +44,11 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 
             }
             t.rows.add.apply(seedRowValues)
-            const r = sqlPool.request()
+            
 
             le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
-
+            
+            const r = sqlPool.request()
             try {
                 await r.bulk(t)
             } catch(err) {
