@@ -1,7 +1,8 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
-import { ColumnDefinition } from './columnDefinition';
-import { SqlStatement } from '../execute';
+import { ColumnDefinition } from '../components/columnDefinition';
+import { ExecuteSqlStatement } from '../update/executeSqlStatement';
+import { doesIndexExist } from '../read/doesIndexExist';
 
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
@@ -20,14 +21,22 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
 
             if(columnDefinitions[i].isIndexed) {
-                indexesToCreate.push(`CREATE INDEX IDX_${tableName}_${columnDefinitions[i].columnName} ON ${tableName}(${tableName}${columnDefinitions[i].columnName});`)
+
+                const indexName:string = `IDX_${tableName}_${columnDefinitions[i].columnName}`
+
+                const indexExists:boolean = await doesIndexExist(le, sqlPool, indexName, tableName)
+                
+                if(!indexExists) {
+                    indexesToCreate.push(`CREATE INDEX ${indexName} ON ${tableName}(${tableName}${columnDefinitions[i].columnName});`)
+                }
+
             }
         }
         t.rows.add(0, "default entry")
 
         const r = sqlPool.request()
 
-        le.AddLogEntry(LogEngine.EntryType.Info, `executing CREATE TABLE ${tableName}`)
+        le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
 
         try {
             await r.bulk(t)
@@ -39,8 +48,8 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
         for(let i=0; i<indexesToCreate.length; i++) {
             let req = sqlPool.request()
-            le.AddLogEntry(LogEngine.EntryType.Info, `${indexesToCreate[i]}`)
-            await SqlStatement(le, sqlPool, indexesToCreate[i], req)
+            le.AddLogEntry(LogEngine.EntryType.Info, `CREATE INDEX ${indexesToCreate[i]}`)
+            await ExecuteSqlStatement(le, sqlPool, indexesToCreate[i], req)
         }
         
     } catch(err) {

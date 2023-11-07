@@ -1,12 +1,13 @@
 // imports
 import { LogEngine } from 'whiskey-log';
 
-import { CreateTable } from './components/createTable';
-import { UpdateTable, RowUpdate, ColumnUpdate } from './update'
+import { CreateTable } from './create/createTable';
+import { UpdateTable } from './update/updateTable'
 import { GetID, GetSingleValue, SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './components/columnDefinition';
+import { RowUpdate } from './components/RowUpdate';
 
 import mssql from 'mssql'
 

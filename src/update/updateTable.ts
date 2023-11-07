@@ -1,6 +1,7 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
-import { SqlStatement } from './execute';
+import { ExecuteSqlStatement } from './executeSqlStatement';
+import { RowUpdate } from '../components/RowUpdate';
 
 
 export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdates:RowUpdate[]):Promise<void> {
@@ -26,7 +27,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             const r = sqlPool.request()
             r.input('PrimaryKeyValue', mssql.Int, rowUpdates[i].primaryKeyValue)
 
-            const result = await SqlStatement(le, sqlPool, selectQuery, r)
+            const result = await ExecuteSqlStatement(le, sqlPool, selectQuery, r)
             
             let columnUpdateStatements:string[] = []
 
@@ -65,7 +66,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 updateStatement += `WHERE ${primaryKeyColumnName}=@PrimaryKeyValue`
 
                 try {
-                    await SqlStatement(le, sqlPool, updateStatement, updateRequest)
+                    await ExecuteSqlStatement(le, sqlPool, updateStatement, updateRequest)
                 } catch(err) {
                     le.AddLogEntry(LogEngine.EntryType.Error, updateStatement);
                     le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
@@ -88,28 +89,3 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
     return new Promise<void>((resolve) => {resolve()})
 
 }
-
-
-export class RowUpdate {
-    constructor(primaryKeyValue:number) {
-        this.primaryKeyValue=primaryKeyValue
-    }
-    public updateName:string = ''
-    public primaryKeyValue:number = 0
-    public ColumnUpdates:ColumnUpdate[] = []
-}
-
-export class ColumnUpdate {
-    constructor(ColumnName:string, ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams, ColumnValue:any, changeDetection:boolean=true) {
-        this.ColumnName=ColumnName
-        this.ColumnType=ColumnType
-        this.ColumnValue=ColumnValue
-        this.changeDetection=changeDetection
-    }
-    public ColumnName:string = ''
-    public ColumnType:mssql.ISqlType|mssql.ISqlTypeFactoryWithNoParams = mssql.Int
-    public ColumnValue:any = undefined
-    public changeDetection:boolean = true
-}
-
-
