@@ -7,7 +7,7 @@ export async function doesIndexExist(le:LogEngine, sqlPool:mssql.ConnectionPool,
     let output:boolean=false
     try {
         const r = sqlPool.request()
-        const query:string = `SELECT EXISTS (SELECT 1 FROM sys.indexes WHERE name=${indexName} AND object_id=OBJECT_ID('${tableName}'));`
+        const query:string = `SELECT OBJECT_ID FROM sys.indexes WHERE name='${indexName}' AND object_id=OBJECT_ID('${tableName}');`
         const result = await ExecuteSqlStatement(le, sqlPool, query, r)
         if(result.rowsAffected.length===0) {
             output=true
