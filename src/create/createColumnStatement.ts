@@ -7,6 +7,10 @@ export function createColumnStatement(tableName:string, columnName:string, colum
     columnStatement += `\t\t`
     columnStatement += `${columnType}`
 
+    if (columnType==="VARCHAR" && (!columnLength || columnLength===0)) {
+        columnLength=255
+    }
+
     if(columnLength>0) {
         columnStatement += `(${columnLength})`
     }
