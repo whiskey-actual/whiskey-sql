@@ -1,4 +1,4 @@
-import mssql from 'mssql'
+import mssql, { rows } from 'mssql'
 import { LogEngine } from 'whiskey-log';
 import { ColumnDefinition } from './columnDefinition';
 import { ExecuteSqlStatement } from '../update/executeSqlStatement';
@@ -18,7 +18,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             const t = new mssql.Table(tableName);
             t.create = true;
 
-            let seedRowValues:any[] = []
+            let seedRowValues:(string|number|boolean|Date|Buffer|null|undefined)[] = []
 
             t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, primary: true, identity: true})
             seedRowValues.push(0)
@@ -43,9 +43,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 seedRowValues.push(columnDefinitions[i].seedValue)
                 
             }
-
-            seedRowValues.forEach(arr => t.rows.add.apply(null, arr));
-
+            t.rows.add.apply(seedRowValues)
             const r = sqlPool.request()
 
             le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
