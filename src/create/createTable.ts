@@ -8,12 +8,12 @@ import { doesTableExist } from '../read/doesTableExist';
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
     le.logStack.push("CreateTable");
+    le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
 
     try {
 
         if (!await doesTableExist(le, sqlPool, tableName)) {
 
-            le.AddLogEntry(LogEngine.EntryType.Info, `creating table: ${tableName}`)
             let indexesToCreate:string[] = []
             const t = new mssql.Table(tableName);
             t.create = true;
@@ -45,8 +45,6 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             }
             t.rows.add.apply(seedRowValues)
 
-            le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
-            
             const r = sqlPool.request()
             try {
                 await r.bulk(t)
@@ -58,7 +56,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             for(let i=0; i<indexesToCreate.length; i++) {
                 let req = sqlPool.request()
-                le.AddLogEntry(LogEngine.EntryType.Info, `CREATE INDEX ${indexesToCreate[i]}`)
+                le.AddLogEntry(LogEngine.EntryType.Info, `${indexesToCreate[i]}`)
                 await ExecuteSqlStatement(le, sqlPool, indexesToCreate[i], req)
             }
         } else {
