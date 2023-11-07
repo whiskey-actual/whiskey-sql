@@ -32,36 +32,25 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             for(let i=0; i<columnDefinitions.length; i++) {
 
-                const typeObject:any = Object(columnDefinitions[i].columnType)
 
-                let columnType:string = "INT"
-
-                switch(typeObject.toString()) {
-                    case "[sql.Int]":
+                let columnType:string = ""
+                switch(columnDefinitions[i].columnType) {
+                    case mssql.Int:
                         columnType="INT"
                         break;
-                    case "[sql.Bit]":
+                    case mssql.VarChar:
+                        columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
+                        break;
+                    case mssql.Bit:
                         columnType="BIT"
                         break;
+                    case mssql.DateTime2:
+                        columnType="DATETIME2"
+                        break;
                     default:
-                        switch(typeObject.type.toString()) {
-                            case "[sql.VarChar]":
-                                columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
-                                break;
-                            case "[sql.DateTime2]":
-                                columnType="DATETIME2"
-                                break;
-                            default:
-                                console.debug(typeObject)
-                                console.debug(typeObject.type)
-                                console.debug(typeObject.type.toString())
-                                throw `${columnDefinitions[i].columnName}: column type not supported`
-                                break;
-                        }
+                        throw `${columnDefinitions[i].columnName}: column type not supported: ${columnDefinitions[i].columnType}`
                         break;
                 }
-
-                
 
                 creationQuery += `\t[${tableName}${columnDefinitions[i].columnName}]`
                 creationQuery += `\t${columnType}`
