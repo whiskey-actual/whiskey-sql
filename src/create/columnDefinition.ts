@@ -1,16 +1,18 @@
 import mssql from 'mssql'
 
 export class ColumnDefinition {
-    constructor(columnName:string, columnType:mssql.ISqlTypeFactoryWithNoParams|mssql.ISqlTypeWithLength, isNullable:boolean=true, isIndexed:boolean=false, seedValue:string|number|boolean|Date|undefined=undefined) {
+    constructor(columnName:string, columnType:string, isNullable:boolean=true, isIndexed:boolean=false, columnLength:number=0, defaultValue:string|number|boolean|undefined=undefined) {
         this.columnName=columnName
         this.columnType=columnType
+        this.columnLength=columnLength
         this.isNullable=isNullable
         this.isIndexed=isIndexed
-        this.seedValue=seedValue
+        this.defaultValue=defaultValue
     }
     public columnName:string=''
-    public columnType:mssql.ISqlTypeFactoryWithNoParams|mssql.ISqlTypeWithLength=mssql.Int
+    public columnType:string=''
+    public columnLength:number=0
     public isNullable:boolean=false
     public isIndexed:boolean=false
-    public seedValue:string|number|boolean|Date|undefined=undefined
+    public defaultValue:string|number|boolean|undefined=undefined
 }

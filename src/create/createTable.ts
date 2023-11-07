@@ -20,39 +20,44 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             let seedRowValues:(string|number|boolean|Date|Buffer|null|undefined)[] = []
 
-            t.columns.add(`${tableName}ID`, mssql.Int, {identity: true, nullable: false})
+
+            let creationQuery:string = ""
+
+            creationQuery += `CREATE TABLE [dbo].[${tableName}] (`
+            
+            // add identity column
+            creationQuery += createColumnStatement(tableName, "ID", "INT", 0, false, undefined, true)
             seedRowValues.push(0)
 
-            t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
+            // add description column
+            creationQuery += createColumnStatement(tableName, "Description", "VARCHAR", 255, true)
             seedRowValues.push("unknown")
 
             for(let i=0; i<columnDefinitions.length; i++) {
-                t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
+
+                const currentColumn = columnDefinitions[i]
+
+                creationQuery += createColumnStatement(tableName, currentColumn.columnName, currentColumn.columnType, currentColumn.columnLength, currentColumn.isNullable, currentColumn.defaultValue)
 
                 if(columnDefinitions[i].isIndexed) {
 
                     const indexName:string = `IDX_${tableName}_${columnDefinitions[i].columnName}`
-
                     const indexExists:boolean = await doesIndexExist(le, sqlPool, indexName, tableName)
-                    
                     if(!indexExists) {
                         indexesToCreate.push(`CREATE INDEX ${indexName} ON [${tableName}](${tableName}${columnDefinitions[i].columnName});`)
                     }
                 }
-
-                seedRowValues.push(columnDefinitions[i].seedValue)
-                
+                seedRowValues.push(columnDefinitions[i].defaultValue)
             }
-            t.rows.add.apply(seedRowValues)
+            creationQuery += `);`
 
             const r = sqlPool.request()
             try {
-                await r.bulk(t)
+                await ExecuteSqlStatement(le, sqlPool, creationQuery, r)
             } catch(err) {
-                le.AddLogEntry(LogEngine.EntryType.Error, `error in bulk(): ${err}`)
-                
+                le.AddLogEntry(LogEngine.EntryType.Error, `error creating table ${tableName}: ${err}`)
+                console.debug(creationQuery);
             }
-            
 
             for(let i=0; i<indexesToCreate.length; i++) {
                 let req = sqlPool.request()
@@ -70,4 +75,36 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         le.logStack.pop()
     }
     return new Promise<void>((resolve) => {resolve()})
+}
+
+
+function createColumnStatement(tableName:string, columnName:string, columnType:string, columnLength:number, isNullable:boolean=true, defaultValue:string|number|boolean|undefined=undefined, isIdentity:boolean=false) {
+
+    let columnStatement:string=""
+
+    columnStatement = "\t"
+    columnStatement += `${tableName}${columnName}`
+    columnStatement += `\t\t`
+    columnStatement += `${columnType}`
+
+    if(columnLength>0) {
+        columnStatement += `(${columnLength})`
+    }
+
+    columnStatement += `\t\t`
+
+    if(!isNullable) {columnStatement += `NOT `}
+
+    columnStatement += `NULL`
+
+    if(isIdentity) {
+        columnStatement += `\t\tIDENTITY(1,1)`
+    }
+
+    if(defaultValue) {
+        columnStatement += `\t\tDEFAULT((${defaultValue}))`
+    }
+
+    return columnStatement
+
 }
