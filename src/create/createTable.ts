@@ -32,31 +32,37 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             for(let i=0; i<columnDefinitions.length; i++) {
 
-                console.debug("---")
-
                 const typeObject:any = Object(columnDefinitions[i].columnType)
-                console.debug(typeObject)
 
                 let columnType:string = "INT"
 
-                switch(typeObject.type) {
+                switch(typeObject) {
                     case "sql.Int":
                         columnType="INT"
                         break;
-                    case "sql.VarChar":
-                        columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
-                        break;
-                    case "sql.DateTime2":
-                        columnType="DATETIME2"
+                    case "sql.Bit":
+                        columnType="BIT"
                         break;
                     default:
-                        console.debug(typeObject)
-                        //throw 'column type not supported'
+                        switch(typeObject.type) {
+                            case "sql.VarChar":
+                                columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
+                                break;
+                            case "sql.DateTime2":
+                                columnType="DATETIME2"
+                                break;
+                            default:
+                                console.debug(typeObject)
+                                throw 'column type not supported'
+                                break;
+                        }
                         break;
                 }
 
+                
+
                 creationQuery += `\t[${tableName}${columnDefinitions[i].columnName}]`
-                creationQuery += `\t${columnDefinitions[i].columnType}`
+                creationQuery += `\t${columnType}`
                 creationQuery += `\t${columnDefinitions[i].isNullable ? 'NULL' : 'NOT NULL'},\n`
 
                 //t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
