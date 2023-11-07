@@ -22,23 +22,38 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             let creationQuery:string = `CREATE TABLE [dbo].[${tableName}] (\n`
 
-            creationQuery += `  [${tableName}ID]\t\tINT\t\tNOT NULL\t\tIDENTITY(1,1),`
+            creationQuery += `\t[${tableName}ID]\t\tINT\t\tNOT NULL\t\tIDENTITY(1,1),\n`
             //t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, identity: true, primary: true})
             //seedRowValues.push(0)
 
-            creationQuery += `  [${tableName}Description]\t\tVARCHAR(255)\t\tNULL,`
+            creationQuery += `\t[${tableName}Description]\t\tVARCHAR(255)\t\tNULL,\n`
             //t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
             //seedRowValues.push("unknown")
 
-
             for(let i=0; i<columnDefinitions.length; i++) {
 
-                creationQuery += ` [${tableName}${columnDefinitions[i].columnName}]`
-                creationQuery += `\t${columnDefinitions[i].columnType.toString()}`
-                creationQuery += `\t${columnDefinitions[i].isNullable ? 'NULL' : 'NOT NULL'},`
-                
-                
+                console.debug(columnDefinitions[i].columnType)
 
+                let columnType:string = "INT"
+
+                switch(columnDefinitions[i].columnType) {
+                    case mssql.Int:
+                        columnType="INT"
+                        break;
+                    case mssql.VarChar:
+                        columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
+                        break;
+                    case mssql.DateTime2:
+                        columnType="DATETIME2"
+                        break;
+                    default:
+                        throw 'column type not supported.'
+                        break;
+                }
+
+                creationQuery += `\t[${tableName}${columnDefinitions[i].columnName}]`
+                creationQuery += `\t${columnDefinitions[i].columnType.toString()}`
+                creationQuery += `\t${columnDefinitions[i].isNullable ? 'NULL' : 'NOT NULL'},\n`
 
                 //t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
 
