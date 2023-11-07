@@ -20,7 +20,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             let seedRowValues:(string|number|boolean|Date|Buffer|null|undefined)[] = []
 
-            t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, primary: true, identity: true})
+            t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, identity: true, primary: true})
             seedRowValues.push(0)
 
             t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
