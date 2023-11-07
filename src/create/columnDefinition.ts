@@ -1,5 +1,3 @@
-import mssql from 'mssql'
-
 export class ColumnDefinition {
     constructor(columnName:string, columnType:string, isNullable:boolean=true, isIndexed:boolean=false, columnLength:number=0, defaultValue:string|number|boolean|undefined=undefined) {
         this.columnName=columnName

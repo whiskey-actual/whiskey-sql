@@ -55,3 +55,7 @@ export class DBEngine {
     }
 
 }
+
+export namespace DBEngine {
+    ColumnDefinition
+}
