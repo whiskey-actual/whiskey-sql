@@ -20,14 +20,27 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             let seedRowValues:(string|number|boolean|Date|Buffer|null|undefined)[] = []
 
-            t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, identity: true, primary: true})
-            seedRowValues.push(0)
+            let creationQuery:string = `CREATE TABLE [dbo].[${tableName}] (\n`
 
-            t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
-            seedRowValues.push("unknown")
+            creationQuery += `  [${tableName}ID]\t\tINT\t\tNOT NULL\t\tIDENTITY(1,1),`
+            //t.columns.add(`${tableName}ID`, mssql.Int, {nullable:false, identity: true, primary: true})
+            //seedRowValues.push(0)
+
+            creationQuery += `  [${tableName}Description]\t\tVARCHAR(255)\t\tNULL,`
+            //t.columns.add(`${tableName}Description`, mssql.VarChar(255), {nullable:true})
+            //seedRowValues.push("unknown")
+
 
             for(let i=0; i<columnDefinitions.length; i++) {
-                t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
+
+                creationQuery += ` [${tableName}${columnDefinitions[i].columnName}]`
+                creationQuery += `\t${columnDefinitions[i].columnType.toString()}`
+                creationQuery += `\t${columnDefinitions[i].isNullable ? 'NULL' : 'NOT NULL'},`
+                
+                
+
+
+                //t.columns.add(`${tableName}${columnDefinitions[i].columnName}`, columnDefinitions[i].columnType, {nullable:columnDefinitions[i].isNullable})
 
                 if(columnDefinitions[i].isIndexed) {
 
@@ -43,11 +56,15 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 seedRowValues.push(columnDefinitions[i].seedValue)
                 
             }
-            t.rows.add.apply(seedRowValues)
+
+            creationQuery += `  CONSTRAINT [PK_${tableName}] PRIMARY KEY CLUSTERED ([${tableName}ID ASC])`
+            creationQuery += `);
+            `
+            //t.rows.add.apply(seedRowValues)
 
             const r = sqlPool.request()
             try {
-                await r.bulk(t)
+                await ExecuteSqlStatement(le, sqlPool, creationQuery, r)
             } catch(err) {
                 le.AddLogEntry(LogEngine.EntryType.Error, `error in bulk(): ${err}`)
                 
