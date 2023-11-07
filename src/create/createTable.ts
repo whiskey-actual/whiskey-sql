@@ -13,7 +13,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
         if (!await doesTableExist(le, sqlPool, tableName)) {
 
-            le.AddLogEntry(LogEngine.EntryType.Debug, `creating: ${tableName}`)
+            le.AddLogEntry(LogEngine.EntryType.Info, `creating table: ${tableName}`)
             let indexesToCreate:string[] = []
             const t = new mssql.Table(tableName);
             t.create = true;
@@ -44,7 +44,6 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 
             }
             t.rows.add.apply(seedRowValues)
-            
 
             le.AddLogEntry(LogEngine.EntryType.Info, `CREATE TABLE ${tableName}`)
             
