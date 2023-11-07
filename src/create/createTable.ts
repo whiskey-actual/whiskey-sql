@@ -36,7 +36,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                     const indexExists:boolean = await doesIndexExist(le, sqlPool, indexName, tableName)
                     
                     if(!indexExists) {
-                        indexesToCreate.push(`CREATE INDEX ${indexName} ON ${tableName}(${tableName}${columnDefinitions[i].columnName});`)
+                        indexesToCreate.push(`CREATE INDEX ${indexName} ON [${tableName}](${tableName}${columnDefinitions[i].columnName});`)
                     }
                 }
 
