@@ -39,7 +39,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                         columnType="INT"
                         break;
                     case mssql.VarChar:
-                        columnType=`VARCHAR(${columnDefinitions[i].columnType.length})`
+                        columnType=`VARCHAR(255)`
                         break;
                     case mssql.Bit:
                         columnType="BIT"
