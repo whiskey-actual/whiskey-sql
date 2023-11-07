@@ -1,6 +1,6 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
-import { ColumnDefinition } from '../components/columnDefinition';
+import { ColumnDefinition } from './columnDefinition';
 import { ExecuteSqlStatement } from '../update/executeSqlStatement';
 import { doesIndexExist } from '../read/doesIndexExist';
 import { doesTableExist } from '../read/doesTableExist';
@@ -8,9 +8,6 @@ import { doesTableExist } from '../read/doesTableExist';
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
     le.logStack.push("CreateTable");
-
-    
-    
 
     try {
 

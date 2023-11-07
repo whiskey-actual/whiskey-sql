@@ -6,7 +6,7 @@ import { UpdateTable } from './update/updateTable'
 import { GetID, GetSingleValue, SelectColumns } from './get';
 
 import { ColumnValuePair } from './components/columnValuePair';
-import { ColumnDefinition } from './components/columnDefinition';
+import { ColumnDefinition } from './create/columnDefinition';
 import { RowUpdate } from './components/RowUpdate';
 
 import mssql from 'mssql'

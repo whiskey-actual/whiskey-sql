@@ -12,6 +12,7 @@ export async function doesTableExist(le:LogEngine, sqlPool:mssql.ConnectionPool,
         const result = await ExecuteSqlStatement(le, sqlPool, query, r)
         if(result.rowsAffected.length>0) {
             le.AddLogEntry(LogEngine.EntryType.Info, `.. table ${tableName} exists`)
+            console.debug(result)
             output=true
         }
     } catch(err) {
