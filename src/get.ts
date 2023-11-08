@@ -86,7 +86,7 @@ export async function GetSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool,
     try {
         const r = sqlPool.request()
         r.input('idValue', mssql.Int, idValue)
-        const query:string = `SELECT ${ColumnToSelect} FROM ${table} WHERE ${idColumn}=@idValue`
+        const query:string = `SELECT ${ColumnToSelect} FROM [${table}] WHERE ${idColumn}=@idValue`
         const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, query, r)
         if(result.recordset.length===0) {
             throw(`${table}.${idColumn}=${idValue} not found.`)
@@ -110,7 +110,7 @@ function BuildSelectStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableT
 
     try {
 
-        let selectQuery:string = `SELECT ${ColumnsToSelect.join(", ")} FROM ${TableToSelectFrom}(NOLOCK)`
+        let selectQuery:string = `SELECT ${ColumnsToSelect.join(", ")} FROM [${TableToSelectFrom}](NOLOCK)`
         let selectText:string = selectQuery
 
         const alphabet = getAlphaArray()
@@ -155,7 +155,7 @@ function BuildInsertStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableT
 
     try {
 
-        let insertStatement:string = `INSERT INTO ${TableToInsertTo}`
+        let insertStatement:string = `INSERT INTO [${TableToInsertTo}]`
         insertStatement += '('
         for(let i=0; i<MatchConditions.length; i++) {
             if(i>0) { insertStatement += `,`}
