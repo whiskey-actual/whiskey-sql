@@ -84,6 +84,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         throw(err)
     } finally {
         //this.le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Success, Utilities.getProgressMessage(updatePackage.tableName, 'persisted', updatePackage.UpdatePackageItems.length, updatePackage.UpdatePackageItems.length, startDate, new Date))
+        le.logStack.pop()
     }
 
     return new Promise<void>((resolve) => {resolve()})
