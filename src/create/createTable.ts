@@ -54,6 +54,7 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
 
             const r = sqlPool.request()
             try {
+                console.debug(`\n\n${creationQuery}\n\n`)
                 await ExecuteSqlStatement(le, sqlPool, creationQuery, r)
             } catch(err) {
                 le.AddLogEntry(LogEngine.EntryType.Error, `error creating table ${tableName}: ${err}`)
