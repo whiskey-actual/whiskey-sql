@@ -1,6 +1,6 @@
 {
   "name": "whiskey-sql",
-  "version": "1.0.72",
+  "version": "1.0.73",
   "description": "",
   "main": "./lib/index.js",
   "files": [
