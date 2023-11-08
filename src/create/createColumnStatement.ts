@@ -25,7 +25,7 @@ export function createColumnStatement(tableName:string, columnName:string, colum
         columnStatement += `\t\tIDENTITY(1,1)`
     }
 
-    if(defaultValue) {
+    if(defaultValue!==undefined) {
         columnStatement += `\t\tDEFAULT((${defaultValue}))`
     }
 
