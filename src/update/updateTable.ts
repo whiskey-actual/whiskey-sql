@@ -20,7 +20,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 selectQuery += ' '
             }
 
-            selectQuery += `FROM ${tableName} WHERE ${primaryKeyColumnName}=@PrimaryKeyValue`
+            selectQuery += `FROM [${tableName}] WHERE ${primaryKeyColumnName}=@PrimaryKeyValue`
 
             //this.le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, selectQuery);
 
@@ -55,7 +55,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
             // do we have updates to perform?
             if(columnUpdateStatements.length>0) {
 
-                let updateStatement:string = `UPDATE ${tableName} SET `
+                let updateStatement:string = `UPDATE [${tableName}] SET `
 
                 for(let j=0; j<columnUpdateStatements.length; j++) {
                     updateStatement += columnUpdateStatements[j]
