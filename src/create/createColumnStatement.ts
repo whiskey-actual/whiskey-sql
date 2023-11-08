@@ -26,6 +26,7 @@ export function createColumnStatement(tableName:string, columnName:string, colum
     }
 
     if(defaultValue!==undefined) {
+        if(columnType==="BIT") { defaultValue = defaultValue ? 1 : 0}
         columnStatement += `\t\tDEFAULT((${defaultValue}))`
     }
 
