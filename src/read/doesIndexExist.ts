@@ -4,8 +4,6 @@ import { ExecuteSqlStatement } from "../update/executeSqlStatement";
 
 export async function doesIndexExist(le:LogEngine, sqlPool:mssql.ConnectionPool, indexName:string, tableName:string):Promise<boolean> {
     le.logStack.push("doesIndexExist");
-    le.AddLogEntry(LogEngine.EntryType.Debug, `checking index: ${indexName}`)
-
     let output:boolean=false
     try {
         const r = sqlPool.request()

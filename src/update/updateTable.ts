@@ -20,7 +20,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                 selectQuery += ' '
             }
 
-            selectQuery += `FROM [${tableName}] WHERE ${primaryKeyColumnName}=@PrimaryKeyValue`
+            selectQuery += `FROM [${tableName}] WHERE [${primaryKeyColumnName}]=@PrimaryKeyValue`
 
             //this.le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, selectQuery);
 
@@ -63,7 +63,7 @@ export async function UpdateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
                     updateStatement += ' '
                 }
 
-                updateStatement += `WHERE ${primaryKeyColumnName}=@PrimaryKeyValue`
+                updateStatement += `WHERE [${primaryKeyColumnName}]=@PrimaryKeyValue`
 
                 try {
                     await ExecuteSqlStatement(le, sqlPool, updateStatement, updateRequest)

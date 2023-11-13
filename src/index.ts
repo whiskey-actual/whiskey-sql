@@ -44,12 +44,14 @@ export class DBEngine {
         return await UpdateTable(this.le, this.sqlPool, tableName, primaryKeyColumnName, rowUpdates)
     }
 
-    public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<any> {
-        if(!await doesTableExist(this.le, this.sqlPool, tableName)) {
-            return await CreateTable(this.le, this.sqlPool, tableName, columnDefinitions)
+    public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
+        const tableExists = await doesTableExist(this.le, this.sqlPool, tableName)
+        if(!tableExists) {
+            await CreateTable(this.le, this.sqlPool, tableName, columnDefinitions)
         } else {
             this.le.AddLogEntry(LogEngine.EntryType.Info, `table [${tableName}] exists, skipping ..`)
         }
+        return new Promise<void>((resolve) => {resolve()})
     }
 
     public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
