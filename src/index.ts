@@ -3,7 +3,9 @@ import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create/createTable';
 import { UpdateTable } from './update/updateTable'
+import { doesTableExist } from './read/doesTableExist';
 import { GetID, GetSingleValue, SelectColumns } from './get';
+
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './create/columnDefinition';
@@ -43,7 +45,11 @@ export class DBEngine {
     }
 
     public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<any> {
-        return await CreateTable(this.le, this.sqlPool, tableName, columnDefinitions)
+        if(!await doesTableExist(this.le, this.sqlPool, tableName)) {
+            return await CreateTable(this.le, this.sqlPool, tableName, columnDefinitions)
+        } else {
+            this.le.AddLogEntry(LogEngine.EntryType.Info, `table [${tableName}] exists, skipping ..`)
+        }
     }
 
     public async getID(objectName:string, matchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
