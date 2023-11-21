@@ -7,7 +7,7 @@ import { BuildSelectStatement } from './BuildSelectStatement';
 import { BuildUpdateStatement } from './BuildUpdateStatement';
 
 
-export async function PerformTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate):Promise<void> {
+export async function performTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate):Promise<void> {
     le.logStack.push("performTableUpdates");
     
     try {
