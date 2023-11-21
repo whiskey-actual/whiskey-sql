@@ -2,7 +2,7 @@
 import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create/createTable';
-import { performTableUpdates } from './update/performTableUpdates'
+import { PerformTableUpdates } from './update/performTableUpdates'
 import { doesTableExist } from './read/doesTableExist';
 import { GetID, GetSingleValue, SelectColumns } from './get';
 
@@ -41,8 +41,10 @@ export class DBEngine {
         return await SelectColumns(this.le, this.sqlPool, objectName, columns, matchConditions)
     }
 
-    public async performTableUpdates(tableUpdates:TableUpdate):Promise<any> {
-        return await performTableUpdates(this.le, this.sqlPool, tableUpdates)
+    public async performTableUpdates(tableUpdates:TableUpdate[]):Promise<any> {
+        for(let i=0; i<tableUpdates.length; i++) {
+            await PerformTableUpdates(this.le, this.sqlPool, tableUpdates[i])
+        }
     }
 
     public async createTable(tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
