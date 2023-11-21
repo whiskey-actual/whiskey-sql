@@ -1,9 +1,9 @@
 import { LogEngine } from 'whiskey-log';
 import { getAlphaArray } from 'whiskey-util';
 import mssql from 'mssql'
-import { SqlQueryPackage } from './components/sqlQueryPackage';
+import { SqlQueryPackage } from './components/SqlQueryPackage';
 import { ColumnValuePair } from './components/columnValuePair';
-import { ExecuteSqlStatement } from './update/executeSqlStatement';
+import { ExecuteSqlStatement } from './update/ExecuteSqlStatement';
 
 export async function SelectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
     le.logStack.push("getID");
@@ -11,12 +11,9 @@ export async function SelectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, 
     let output:mssql.IRecordSet<any>
 
     try {
-
         const sqpSelect:SqlQueryPackage = BuildSelectStatement(le, sqlPool, objectName, columns, MatchConditions)
-
-        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect.query, sqpSelect.request)
+        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect)
         output = result.recordset
-
     } catch(err) {
         le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
         throw(err)
@@ -37,7 +34,7 @@ export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectNa
         const sqpSelect:SqlQueryPackage = BuildSelectStatement(le, sqlPool, objectName, [objectName+'ID'], MatchConditions)
         //le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, sqpSelect.queryText)
 
-        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect.query, sqpSelect.request)
+        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect)
 
         if(result.recordset.length!==0) {
             output = result.recordset[0][objectName+'ID']
@@ -47,16 +44,16 @@ export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectNa
                 le.AddLogEntry(LogEngine.EntryType.Add, `${objectName}: did not find matching row, adding .. `)
                 const sqpInsert:SqlQueryPackage = BuildInsertStatement(le, sqlPool, objectName, MatchConditions)
                 try {
-                    await ExecuteSqlStatement(le, sqlPool, sqpInsert.query, sqpInsert.request)
+                    await ExecuteSqlStatement(le, sqlPool, sqpInsert)
                 } catch(err) {
-                    le.AddLogEntry(LogEngine.EntryType.Error, sqpSelect.queryText)
-                    le.AddLogEntry(LogEngine.EntryType.Error, sqpInsert.queryText)
+                    le.AddLogEntry(LogEngine.EntryType.Error, sqpSelect.queryText || '')
+                    le.AddLogEntry(LogEngine.EntryType.Error, sqpInsert.queryText || '')
                     le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
                     throw(err)
                 }
                 
                 
-                let newResult:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect.query, sqpSelect.request)
+                let newResult:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqpSelect)
                 if(newResult.recordset.length===0) {
                     throw(`ID not found for newly added row in ${objectName}!`)
                 } else {
@@ -86,8 +83,8 @@ export async function GetSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool,
     try {
         const r = sqlPool.request()
         r.input('idValue', mssql.Int, idValue)
-        const query:string = `SELECT ${ColumnToSelect} FROM [${table}] WHERE ${idColumn}=@idValue`
-        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, query, r)
+        const sqp:SqlQueryPackage = new SqlQueryPackage(`SELECT ${ColumnToSelect} FROM [${table}] WHERE ${idColumn}=@idValue`, r)
+        const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqp)
         if(result.recordset.length===0) {
             throw(`${table}.${idColumn}=${idValue} not found.`)
         } else {

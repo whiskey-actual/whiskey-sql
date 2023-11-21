@@ -1,9 +1,10 @@
 import mssql from 'mssql'
 import { LogEngine } from 'whiskey-log';
 import { ColumnDefinition } from './columnDefinition';
-import { ExecuteSqlStatement } from '../update/executeSqlStatement';
+import { ExecuteSqlStatement } from '../update/ExecuteSqlStatement';
 import { doesIndexExist } from '../read/doesIndexExist';
 import { createColumnStatement } from './createColumnStatement';
+import { SqlQueryPackage } from '../components/SqlQueryPackage';
 
 export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, columnDefinitions:ColumnDefinition[]):Promise<void> {
 
@@ -50,9 +51,10 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         }
         creationQuery += `);`
 
-        const r = sqlPool.request()
+        const sqp:SqlQueryPackage = new SqlQueryPackage(creationQuery, sqlPool.request())
+
         try {
-            await ExecuteSqlStatement(le, sqlPool, creationQuery, r)
+            await ExecuteSqlStatement(le, sqlPool, sqp)
         } catch(err) {
             le.AddLogEntry(LogEngine.EntryType.Error, `error creating table ${tableName}: ${err}`)
             le.AddLogEntry(LogEngine.EntryType.Error, creationQuery)
@@ -60,9 +62,9 @@ export async function CreateTable(le:LogEngine, sqlPool:mssql.ConnectionPool, ta
         }
 
         for(let i=0; i<indexesToCreate.length; i++) {
-            let req = sqlPool.request()
             le.AddLogEntry(LogEngine.EntryType.Info, `${indexesToCreate[i]}`)
-            await ExecuteSqlStatement(le, sqlPool, indexesToCreate[i], req)
+            const sqpIndex:SqlQueryPackage = new SqlQueryPackage(indexesToCreate[i], sqlPool.request())
+            await ExecuteSqlStatement(le, sqlPool, sqpIndex)
         }
         
     } catch(err) {
