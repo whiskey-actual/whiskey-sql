@@ -24,11 +24,10 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             const sqlSelectQueryPackage = await BuildSelectStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, tableUpdate.RowUpdates[i])
             const existingRow = await ExecuteSqlStatement(le, sqlPool, sqlSelectQueryPackage)
             le.AddLogEntry(LogEngine.EntryType.Info, `.. got existing row ..`)
-
     
             const sqlUpdateQueryPackage = await BuildUpdateStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, ru, existingRow)
 
-            if(sqlUpdateQueryPackage.query) {
+            if(sqlUpdateQueryPackage) {
                 le.AddLogEntry(LogEngine.EntryType.Info, `.. built update ..`)
                 le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
 

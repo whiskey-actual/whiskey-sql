@@ -4,9 +4,9 @@ import { RowUpdate } from "../components/RowUpdate"
 import { ColumnUpdate } from "../components/ColumnUpdate"
 import { SqlQueryPackage } from "../components/SqlQueryPackage"
 
-export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdate:RowUpdate, existingRow:mssql.IResult<any>):Promise<SqlQueryPackage> {
+export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdate:RowUpdate, existingRow:mssql.IResult<any>):Promise<SqlQueryPackage|void> {
 
-    let output:SqlQueryPackage
+    let output:SqlQueryPackage|void
 
     try {
 
@@ -60,6 +60,6 @@ export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.Connectio
         le.logStack.pop()
     }
     
-    return new Promise<SqlQueryPackage>((resolve) => {resolve(output)})
+    return new Promise<SqlQueryPackage|void>((resolve) => {resolve(output)})
 
 }
