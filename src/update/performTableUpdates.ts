@@ -5,16 +5,19 @@ import { TableUpdate } from '../components/TableUpdate';
 import { executePromisesWithProgress } from 'whiskey-util';
 import { BuildSelectStatement } from './BuildSelectStatement';
 import { BuildUpdateStatement } from './BuildUpdateStatement';
+import { SqlQueryPackage } from '../components/SqlQueryPackage';
+import { getProgressMessage } from 'whiskey-util';
 
 
-export async function performTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate):Promise<void> {
+export async function performTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate, logFrequency:number=250):Promise<void> {
     le.logStack.push("performTableUpdates");
     
     try {
         
         le.AddLogEntry(LogEngine.EntryType.Info, `.. updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
 
-        let updates:Promise<mssql.IResult<any>>[] = []
+        let updates:SqlQueryPackage[] = []
+
 
         for(let i=0; i<tableUpdate.RowUpdates.length; i++) {            
 
@@ -32,8 +35,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
                 //le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
 
                 try {
-                    //updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
-                    await ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage)
+                    updates.push(sqlUpdateQueryPackage)
                 } catch(err) {
                     le.AddLogEntry(LogEngine.EntryType.Error, sqlUpdateQueryPackage.query);
                     le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
@@ -47,7 +49,14 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             }
         }
 
-        await executePromisesWithProgress(le, updates)
+        const timeStart:Date = new Date()
+        for(let i=0; i<updates.length; i++) {
+            await ExecuteSqlStatement(le, sqlPool, updates[i])
+            if(i>0 && i%logFrequency===0) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
+        }
+
+
+        //await executePromisesWithProgress(le, updates)
 
     } catch(err) {
         le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)

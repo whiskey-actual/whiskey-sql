@@ -152,7 +152,7 @@ function BuildInsertStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableT
 
     try {
 
-        let insertStatement:string = `INSERT INTO [${TableToInsertTo}](NOLOCK)`
+        let insertStatement:string = `INSERT INTO [${TableToInsertTo}]`
         insertStatement += '('
         for(let i=0; i<MatchConditions.length; i++) {
             if(i>0) { insertStatement += `,`}
