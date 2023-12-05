@@ -3,7 +3,7 @@ import mssql, { IResult } from 'mssql'
 import { SqlQueryPackage } from '../components/SqlQueryPackage';
 
 export async function ExecuteSqlStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, sqlQueryPackage:SqlQueryPackage, logFrequency:number=1000):Promise<mssql.IResult<any>> {
-    le.logStack.push("executeSql");
+    le.logStack.push("ExecuteSqlStatement");
     le.AddLogEntry(LogEngine.EntryType.Debug, `executing: ${sqlQueryPackage.query}`)
     let output:mssql.IResult<any>
     try {

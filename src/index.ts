@@ -42,6 +42,7 @@ export class DBEngine {
 
     public async PerformTableUpdates(tableUpdates:TableUpdate[]):Promise<any> {
         for(let i=0; i<tableUpdates.length; i++) {
+            this.le.AddLogEntry(LogEngine.EntryType.Info, `PerformTableUpdates(${tableUpdates[i].tableName})`)
             await performTableUpdates(this.le, this.sqlPool, tableUpdates[i])
         }
     }
