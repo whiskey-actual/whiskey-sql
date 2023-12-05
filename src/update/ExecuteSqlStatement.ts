@@ -12,6 +12,7 @@ export async function ExecuteSqlStatement(le:LogEngine, sqlPool:mssql.Connection
         r.verbose = true
         output = await r.query(sqlQueryPackage.query)
     } catch(err) {
+        console.debug(sqlQueryPackage)
         le.AddLogEntry(LogEngine.EntryType.Error, `${sqlQueryPackage.query}`)
         le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
         throw(err)
