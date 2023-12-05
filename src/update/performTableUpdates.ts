@@ -28,6 +28,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
     
             const sqlUpdateQueryPackage = await BuildUpdateStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, ru, existingRow)
             le.AddLogEntry(LogEngine.EntryType.Info, `.. built update ..`)
+            le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
 
             try {
                 updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
