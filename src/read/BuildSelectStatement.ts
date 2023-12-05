@@ -3,7 +3,7 @@ import { RowUpdate } from "../components/RowUpdate"
 import { LogEngine } from 'whiskey-log';
 import { SqlQueryPackage } from '../components/SqlQueryPackage';
 
-export async function BuildSelectStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdate:RowUpdate):Promise<SqlQueryPackage> {
+export function BuildSelectStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdate:RowUpdate):SqlQueryPackage {
     le.logStack.push("BuildSelectStatement");
     let output:SqlQueryPackage
     try {    
@@ -26,6 +26,6 @@ export async function BuildSelectStatement(le:LogEngine, sqlPool:mssql.Connectio
         le.logStack.pop()
     }
     
-    return new Promise<SqlQueryPackage>((resolve) => {resolve(output)})
+    return output
 
 }

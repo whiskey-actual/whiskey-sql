@@ -3,7 +3,7 @@ import { LogEngine } from 'whiskey-log';
 import { ExecuteSqlStatement } from './ExecuteSqlStatement';
 import { TableUpdate } from '../components/TableUpdate';
 import { executePromisesWithProgress } from 'whiskey-util';
-import { BuildSelectStatement } from './BuildSelectStatement';
+import { BuildSelectStatement } from '../read/BuildSelectStatement';
 import { BuildUpdateStatement } from './BuildUpdateStatement';
 import { SqlQueryPackage } from '../components/SqlQueryPackage';
 import { getProgressMessage } from 'whiskey-util';
@@ -23,7 +23,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             const ru = tableUpdate.RowUpdates[i]
 
             // select the existing row
-            const sqlSelectQueryPackage = await BuildSelectStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, tableUpdate.RowUpdates[i])
+            const sqlSelectQueryPackage = BuildSelectStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, tableUpdate.RowUpdates[i])
             const existingRow = await ExecuteSqlStatement(le, sqlPool, sqlSelectQueryPackage)
 
             // build the update
@@ -51,8 +51,6 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             await ExecuteSqlStatement(le, sqlPool, updates[i])
             if(i>0 && (i%logFrequency===0 || i===updates.length-1)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
         }
-
-
         //await executePromisesWithProgress(le, updates)
 
     } catch(err) {

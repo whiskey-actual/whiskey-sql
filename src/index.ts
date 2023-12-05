@@ -3,9 +3,11 @@ import { LogEngine } from 'whiskey-log';
 
 import { CreateTable } from './create/createTable';
 import { performTableUpdates } from './update/performTableUpdates'
-import { doesTableExist } from './read/doesTableExist';
-import { GetID, GetSingleValue, SelectColumns } from './get';
 
+import { doesTableExist } from './read/doesTableExist';
+import { GetID } from './read/GetID';
+import { GetSingleValue } from './read/GetSingleValue';
+import { SelectColumns } from './read/SelectColumns';
 
 import { ColumnValuePair } from './components/columnValuePair';
 import { ColumnDefinition } from './create/columnDefinition';
