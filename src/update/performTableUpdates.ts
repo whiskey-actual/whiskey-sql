@@ -32,7 +32,8 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
                 //le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
 
                 try {
-                    updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
+                    //updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
+                    await ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage)
                 } catch(err) {
                     le.AddLogEntry(LogEngine.EntryType.Error, sqlUpdateQueryPackage.query);
                     le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);

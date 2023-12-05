@@ -28,7 +28,7 @@ export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.Connectio
             {
                     // dont log timestamp changes, because they are expected on nearly every update.
                     if(changeDetection && cu.ColumnType!==mssql.DateTime2) {
-                        //le.AddLogEntry(LogEngine.EntryType.Change, `\x1b[96m${tableName}\x1b[0m.\x1b[96m${cu.ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `, rowUpdate.updateName)
+                        le.AddLogEntry(LogEngine.EntryType.Change, `\x1b[96m${tableName}\x1b[0m.\x1b[96m${cu.ColumnName}\x1b[0m: "\x1b[96m${currentValue}\x1b[0m"->"\x1b[96m${newValue}\x1b[0m".. `, rowUpdate.updateName)
                     }
                     columnUpdateStatements.push(`${cu.ColumnName}=@${cu.ColumnName}`)
                     updateRequest.input(cu.ColumnName, cu.ColumnType, cu.ColumnValue)
