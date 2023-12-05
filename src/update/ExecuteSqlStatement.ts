@@ -4,7 +4,7 @@ import { SqlQueryPackage } from '../components/SqlQueryPackage';
 
 export async function ExecuteSqlStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, sqlQueryPackage:SqlQueryPackage, logFrequency:number=1000):Promise<mssql.IResult<any>> {
     le.logStack.push("ExecuteSqlStatement");
-    le.AddLogEntry(LogEngine.EntryType.Debug, `executing: ${sqlQueryPackage.query}`)
+    le.AddLogEntry(LogEngine.EntryType.Info, `executing: ${sqlQueryPackage.query}`)
     let output:mssql.IResult<any>
     try {
         const r = sqlPool.request()
