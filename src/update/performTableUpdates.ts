@@ -12,7 +12,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
     
     try {
         
-        le.AddLogEntry(LogEngine.EntryType.Debug, `updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
+        le.AddLogEntry(LogEngine.EntryType.Info, `.. updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
 
         let updates:Promise<mssql.IResult<any>>[] = []
 
