@@ -38,7 +38,7 @@ export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.Connectio
         // do we have updates to perform?
         if(columnUpdateStatements.length>0) {
 
-            let updateStatement:string = `UPDATE [${tableName}](NOLOCK) SET `
+            let updateStatement:string = `UPDATE [${tableName}] SET `
 
             for(let j=0; j<columnUpdateStatements.length; j++) {
                 updateStatement += columnUpdateStatements[j]
