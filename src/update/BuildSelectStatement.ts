@@ -17,7 +17,7 @@ export async function BuildSelectStatement(le:LogEngine, sqlPool:mssql.Connectio
             if(j<rowUpdate.ColumnUpdates.length-1) {selectQuery += ','}
             selectQuery += ' '
         }
-        selectQuery += `FROM [${tableName}] WHERE [${primaryKeyColumnName}]=@PrimaryKeyValue`
+        selectQuery += `FROM [${tableName}](NOLOCK) WHERE [${primaryKeyColumnName}]=@PrimaryKeyValue`
         output = new SqlQueryPackage(selectQuery, r, selectQuery)
     } catch(err) {
         le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)

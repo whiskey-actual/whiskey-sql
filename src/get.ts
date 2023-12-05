@@ -83,7 +83,7 @@ export async function GetSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool,
     try {
         const r = sqlPool.request()
         r.input('idValue', mssql.Int, idValue)
-        const sqp:SqlQueryPackage = new SqlQueryPackage(`SELECT ${ColumnToSelect} FROM [${table}] WHERE ${idColumn}=@idValue`, r)
+        const sqp:SqlQueryPackage = new SqlQueryPackage(`SELECT ${ColumnToSelect} FROM [${table}](NOLOCK) WHERE ${idColumn}=@idValue`, r)
         const result:mssql.IResult<any> = await ExecuteSqlStatement(le, sqlPool, sqp)
         if(result.recordset.length===0) {
             throw(`${table}.${idColumn}=${idValue} not found.`)
@@ -152,7 +152,7 @@ function BuildInsertStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableT
 
     try {
 
-        let insertStatement:string = `INSERT INTO [${TableToInsertTo}]`
+        let insertStatement:string = `INSERT INTO [${TableToInsertTo}](NOLOCK)`
         insertStatement += '('
         for(let i=0; i<MatchConditions.length; i++) {
             if(i>0) { insertStatement += `,`}
