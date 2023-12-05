@@ -49,6 +49,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             }
         }
 
+        le.AddLogEntry(LogEngine.EntryType.Info, `${updates.length} updates needed`, tableUpdate.tableName)
         const timeStart:Date = new Date()
         for(let i=0; i<updates.length; i++) {
             await ExecuteSqlStatement(le, sqlPool, updates[i])
