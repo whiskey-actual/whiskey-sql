@@ -50,7 +50,7 @@ export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.Connectio
 
             output = new SqlQueryPackage(updateStatement, updateRequest)
         } else {
-            le.AddLogEntry(LogEngine.EntryType.Success, `no update needed`, rowUpdate.updateName)
+            le.AddLogEntry(LogEngine.EntryType.Debug, `no update needed`, rowUpdate.updateName)
         }
 
     } catch(err) {
