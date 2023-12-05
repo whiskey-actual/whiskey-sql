@@ -27,22 +27,24 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
 
     
             const sqlUpdateQueryPackage = await BuildUpdateStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, ru, existingRow)
-            le.AddLogEntry(LogEngine.EntryType.Info, `.. built update ..`)
-            le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
 
-            try {
-                updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
-            } catch(err) {
-                le.AddLogEntry(LogEngine.EntryType.Error, sqlUpdateQueryPackage.query);
-                le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
-                for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
-                    for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
-                        console.debug(tableUpdate.RowUpdates[i].ColumnUpdates[j])
+            if(sqlUpdateQueryPackage.query) {
+                le.AddLogEntry(LogEngine.EntryType.Info, `.. built update ..`)
+                le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
+
+                try {
+                    updates.push(ExecuteSqlStatement(le, sqlPool, sqlUpdateQueryPackage))
+                } catch(err) {
+                    le.AddLogEntry(LogEngine.EntryType.Error, sqlUpdateQueryPackage.query);
+                    le.AddLogEntry(LogEngine.EntryType.Error, `${err}`);
+                    for(let i=0; i<tableUpdate.RowUpdates.length; i++) {
+                        for(let j=0; j<tableUpdate.RowUpdates[i].ColumnUpdates.length; j++) {
+                            console.debug(tableUpdate.RowUpdates[i].ColumnUpdates[j])
+                        }
                     }
+                    throw(err)
                 }
-                throw(err)
             }
-
         }
 
         await executePromisesWithProgress(le, updates)

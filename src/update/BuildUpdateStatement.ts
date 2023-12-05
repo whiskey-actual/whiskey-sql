@@ -49,6 +49,8 @@ export async function BuildUpdateStatement(le:LogEngine, sqlPool:mssql.Connectio
             updateStatement += `WHERE [${primaryKeyColumnName}]=@PrimaryKeyValue`
 
             output = new SqlQueryPackage(updateStatement, updateRequest)
+        } else {
+            le.AddLogEntry(LogEngine.EntryType.Success, `no update needed`, rowUpdate.updateName)
         }
 
     } catch(err) {
