@@ -4,9 +4,10 @@ import mssql from 'mssql'
 import { SqlQueryPackage } from './components/SqlQueryPackage';
 import { ColumnValuePair } from './components/columnValuePair';
 import { ExecuteSqlStatement } from './update/ExecuteSqlStatement';
+import { BuildInsertStatement } from './update/BuildInsertStatement'
 
 export async function SelectColumns(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, columns:string[], MatchConditions:ColumnValuePair[]):Promise<mssql.IRecordSet<any>> {
-    le.logStack.push("getID");
+    le.logStack.push("SelectColumns");
     le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
     let output:mssql.IRecordSet<any>
 
@@ -75,7 +76,6 @@ export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectNa
 }
 
 export async function GetSingleValue(le:LogEngine, sqlPool:mssql.ConnectionPool, table:string, idColumn:string, idValue:number, ColumnToSelect:string):Promise<any> {
-
     le.logStack.push("getSingleValue");
     le.AddLogEntry(LogEngine.EntryType.Debug, `getting \x1b[96m${ColumnToSelect}\x1b[0m from \x1b[96m${table}\x1b[0m where \x1b[96m${idColumn}\x1b[0m="\x1b[96m${idValue}\x1b[0m".. `)
     let output:any
@@ -145,48 +145,3 @@ function BuildSelectStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableT
     return output
 
 }
-
-function BuildInsertStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, TableToInsertTo:string, MatchConditions:ColumnValuePair[]):SqlQueryPackage {
-    le.logStack.push("BuildInsertStatement")
-    let output:SqlQueryPackage
-
-    try {
-
-        let insertStatement:string = `INSERT INTO [${TableToInsertTo}]`
-        insertStatement += '('
-        for(let i=0; i<MatchConditions.length; i++) {
-            if(i>0) { insertStatement += `,`}
-            insertStatement += `${MatchConditions[i].column}`
-        }
-        insertStatement += ')'
-        insertStatement += ' VALUES ('
-
-        let insertText:string = insertStatement
-
-        const alphabet = getAlphaArray()
-
-        const r = sqlPool.request()
-        for(let i=0; i<MatchConditions.length; i++) {
-            if(i>0) { insertStatement += ','; insertText += ','}
-            insertStatement += `@KeyValue${alphabet[i]}`
-            insertText += `'${MatchConditions[i].value}'`
-            r.input(`KeyValue${alphabet[i]}`, MatchConditions[i].type, (MatchConditions[i].value || MatchConditions[i].value===0) ? MatchConditions[i].value : null)
-            //this._le.AddLogEntry(LogEngine.EntryType.Info, LogEngine.EntryType.Note, `${MatchConditions[i].column}='${MatchConditions[i].value}'`)
-        }
-        insertStatement += ')'; insertText += ')'
-
-        const sqp = new SqlQueryPackage(insertStatement, r)
-        sqp.queryText= insertText
-        output = sqp
-
-    } catch(err) {
-        le.AddLogEntry(LogEngine.EntryType.Error, `${err}`)
-        throw(err)
-    } finally {
-        le.logStack.pop()
-    }
-
-    return output
-}
-
-

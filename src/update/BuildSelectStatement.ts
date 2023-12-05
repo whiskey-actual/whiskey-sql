@@ -4,7 +4,7 @@ import { LogEngine } from 'whiskey-log';
 import { SqlQueryPackage } from '../components/SqlQueryPackage';
 
 export async function BuildSelectStatement(le:LogEngine, sqlPool:mssql.ConnectionPool, tableName:string, primaryKeyColumnName:string, rowUpdate:RowUpdate):Promise<SqlQueryPackage> {
-    le.logStack.push("performTableUpdates");
+    le.logStack.push("BuildSelectStatement");
     let output:SqlQueryPackage
     try {    
         const r = sqlPool.request()

@@ -3,7 +3,7 @@ import { executePromisesWithProgress } from 'whiskey-util'
 import mssql, { IProcedureResult } from 'mssql'
 
 export async function ExecuteStoredProcedure(le:LogEngine, sqlPool:mssql.ConnectionPool, sprocName:string, sqlRequests:mssql.Request[], logFrequency:number=1000) {
-    le.logStack.push("writeToSql");
+    le.logStack.push("ExecuteStoredProcedure");
     le.AddLogEntry(LogEngine.EntryType.Debug, `executing ${sprocName} for ${sqlRequests.length} items .. `)
     
     try {

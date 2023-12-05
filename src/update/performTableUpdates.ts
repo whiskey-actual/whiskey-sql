@@ -18,7 +18,6 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
 
         let updates:SqlQueryPackage[] = []
 
-
         for(let i=0; i<tableUpdate.RowUpdates.length; i++) {            
 
             const ru = tableUpdate.RowUpdates[i]
@@ -26,14 +25,11 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
             // select the existing row
             const sqlSelectQueryPackage = await BuildSelectStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, tableUpdate.RowUpdates[i])
             const existingRow = await ExecuteSqlStatement(le, sqlPool, sqlSelectQueryPackage)
-            //le.AddLogEntry(LogEngine.EntryType.Info, `.. got existing row ..`)
-    
+
+            // build the update
             const sqlUpdateQueryPackage = await BuildUpdateStatement(le, sqlPool, tableUpdate.tableName, tableUpdate.primaryKeyColumnName, ru, existingRow)
 
             if(sqlUpdateQueryPackage) {
-                //le.AddLogEntry(LogEngine.EntryType.Info, `.. built update ..`)
-                //le.AddLogEntry(LogEngine.EntryType.Info, `${sqlUpdateQueryPackage.query}`)
-
                 try {
                     updates.push(sqlUpdateQueryPackage)
                 } catch(err) {
@@ -53,7 +49,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
         const timeStart:Date = new Date()
         for(let i=0; i<updates.length; i++) {
             await ExecuteSqlStatement(le, sqlPool, updates[i])
-            if(i>0 && (i%logFrequency===0 || i===updates.length)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
+            if(i>0 && (i%logFrequency===0 || i===updates.length-1)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
         }
 
 
