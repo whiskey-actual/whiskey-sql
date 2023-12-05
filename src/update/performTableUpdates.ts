@@ -53,7 +53,7 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
         const timeStart:Date = new Date()
         for(let i=0; i<updates.length; i++) {
             await ExecuteSqlStatement(le, sqlPool, updates[i])
-            if(i>0 && i%logFrequency===0) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
+            if(i>0 && (i%logFrequency===0 || i===updates.length)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
         }
 
 
