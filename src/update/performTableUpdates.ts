@@ -14,10 +14,11 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
     
     try {
         
-        le.AddLogEntry(LogEngine.EntryType.Info, `.. updating ${tableUpdate.RowUpdates.length} rows on \x1b[96m${tableUpdate.tableName}\x1b[0m`)
-
         let updates:SqlQueryPackage[] = []
 
+        // determine what needs updating ..
+        le.AddLogEntry(LogEngine.EntryType.Info, `.. finding updates for ${tableUpdate.RowUpdates.length} rows`, tableUpdate.tableName)
+        const timeStartBuildUpdates:Date = new Date()
         for(let i=0; i<tableUpdate.RowUpdates.length; i++) {            
 
             const ru = tableUpdate.RowUpdates[i]
@@ -43,15 +44,19 @@ export async function performTableUpdates(le:LogEngine, sqlPool:mssql.Connection
                     throw(err)
                 }
             }
-        }
 
+            if(i>0 && (i%logFrequency===0)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'built', i, tableUpdate.RowUpdates.length, timeStartBuildUpdates, new Date()), tableUpdate.tableName);}
+        }
+        le.AddLogEntry(LogEngine.EntryType.Success, getProgressMessage('', 'built', tableUpdate.RowUpdates.length, tableUpdate.RowUpdates.length, timeStartBuildUpdates, new Date()), tableUpdate.tableName);
+
+        // perform the updates
         le.AddLogEntry(LogEngine.EntryType.Info, `${updates.length} updates needed`, tableUpdate.tableName)
-        const timeStart:Date = new Date()
+        const timeStartPerformUpdates:Date = new Date()
         for(let i=0; i<updates.length; i++) {
             await ExecuteSqlStatement(le, sqlPool, updates[i])
-            if(i>0 && (i%logFrequency===0)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStart, new Date()));}
+            if(i>0 && (i%logFrequency===0)) {le.AddLogEntry(LogEngine.EntryType.Info, getProgressMessage('', 'performed', i, updates.length, timeStartPerformUpdates, new Date()), tableUpdate.tableName);}
         }
-        le.AddLogEntry(LogEngine.EntryType.Success, getProgressMessage('', 'performed', updates.length, updates.length, timeStart, new Date()));
+        le.AddLogEntry(LogEngine.EntryType.Success, getProgressMessage('', 'performed', updates.length, updates.length, timeStartPerformUpdates, new Date()), tableUpdate.tableName);
         //await executePromisesWithProgress(le, updates)
 
     } catch(err) {
