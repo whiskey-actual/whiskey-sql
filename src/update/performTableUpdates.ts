@@ -9,7 +9,7 @@ import { SqlQueryPackage } from '../components/SqlQueryPackage';
 import { getProgressMessage } from 'whiskey-util';
 
 
-export async function performTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate, logFrequency:number=250):Promise<void> {
+export async function performTableUpdates(le:LogEngine, sqlPool:mssql.ConnectionPool, tableUpdate:TableUpdate, logFrequency:number=1000):Promise<void> {
     le.logStack.push("performTableUpdates");
     
     try {
