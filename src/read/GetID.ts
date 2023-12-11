@@ -9,10 +9,16 @@ import { BuildComplexSelectStatement } from './BuildComplexSelectStatement';
 
 export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectName:string, MatchConditions:ColumnValuePair[], addIfMissing:boolean=true):Promise<number> {
     le.logStack.push("getID");
-    le.AddLogEntry(LogEngine.EntryType.Debug, `getting ID: for \x1b[96m${objectName}\x1b[0m`)
+    
     let output:number=0
 
     try {
+
+        let matchConditionStrings:string[] = []
+        for(let i=0; i<MatchConditions.length; i++) {
+            matchConditionStrings.push(`${MatchConditions[i].column}=${MatchConditions[i].value}`)
+        }
+        const matchConditionString:string = matchConditionStrings.join(",")
 
         const sqpSelect:SqlQueryPackage = BuildComplexSelectStatement(le, sqlPool, objectName, [objectName+'ID'], MatchConditions)
         //le.AddLogEntry(LogEngine.EntryType.Debug, LogEngine.EntryType.Note, sqpSelect.queryText)
@@ -24,7 +30,7 @@ export async function GetID(le:LogEngine, sqlPool:mssql.ConnectionPool, objectNa
         } else {
             if(addIfMissing) {
 
-                le.AddLogEntry(LogEngine.EntryType.Add, `${objectName}: did not find matching row, adding .. `)
+                le.AddLogEntry(LogEngine.EntryType.Debug, `${objectName}: did not find matching row: (${matchConditionString}); adding .. `, objectName)
                 const sqpInsert:SqlQueryPackage = BuildInsertStatement(le, sqlPool, objectName, MatchConditions)
                 try {
                     await ExecuteSqlStatement(le, sqlPool, sqpInsert)
